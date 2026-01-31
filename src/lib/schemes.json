@@ -1,0 +1,111 @@
+[
+    {
+        "id": "pm-vidyalakshmi",
+        "name": "PM Vidyalakshmi Karyakram",
+        "category": "Education Loan",
+        "minAge": 16,
+        "maxAge": 35,
+        "incomeLimit": 450000,
+        "occupationTags": [
+            "Student"
+        ],
+        "state": "All India",
+        "descriptionSimple": "A fully IT-based student financial aid authority to administer and monitor scholarship as well as educational loan schemes.",
+        "benefitsSimple": "Single window for education loans and scholarships.",
+        "documentsRequired": [
+            "Aadhaar Card",
+            "Admission Letter",
+            "Income Certificate"
+        ],
+        "applyLink": "https://www.vidyalakshmi.co.in/",
+        "officialSource": "Ministry of Finance"
+    },
+    {
+        "id": "aikyte-scholarship",
+        "name": "AICTE Pragati Scholarship for Girls",
+        "category": "Scholarship",
+        "minAge": 16,
+        "maxAge": 25,
+        "incomeLimit": 800000,
+        "occupationTags": [
+            "Student",
+            "Female"
+        ],
+        "state": "All India",
+        "descriptionSimple": "Scholarship for girl students pursuing technical education.",
+        "benefitsSimple": "₹50,000 per annum for every year of study.",
+        "documentsRequired": [
+            "Aadhaar Card",
+            "Class 10/12 Marksheet",
+            "Admission Letter",
+            "Income Certificate"
+        ],
+        "applyLink": "https://scholarships.gov.in/",
+        "officialSource": "AICTE"
+    },
+    {
+        "id": "skill-india-pmkvj",
+        "name": "PM Kaushal Vikas Yojana 4.0",
+        "category": "Skill Development",
+        "minAge": 15,
+        "maxAge": 45,
+        "incomeLimit": 0,
+        "occupationTags": [
+            "Unemployed",
+            "Dropout"
+        ],
+        "state": "All India",
+        "descriptionSimple": "Free short-term skill training to become employable.",
+        "benefitsSimple": "Free training + Skill Certification + Placement Assistance.",
+        "documentsRequired": [
+            "Aadhaar Card",
+            "Bank Account Details",
+            "Education Certificate (if any)"
+        ],
+        "applyLink": "https://www.pmkvyofficial.org/",
+        "officialSource": "Ministry of Skill Development"
+    },
+    {
+        "id": "nxs-startup-india",
+        "name": "Startup India Seed Fund",
+        "category": "Entrepreneurship",
+        "minAge": 18,
+        "maxAge": 100,
+        "incomeLimit": 0,
+        "occupationTags": [
+            "Entrepreneur"
+        ],
+        "state": "All India",
+        "descriptionSimple": "Financial assistance to startups for proof of concept, prototype development, and product trials.",
+        "benefitsSimple": "Up to ₹20 Lakhs as grant/debt.",
+        "documentsRequired": [
+            "DPIIT Recognition",
+            "Project Proposal",
+            "Company Incorporation"
+        ],
+        "applyLink": "https://seedfund.startupindia.gov.in/",
+        "officialSource": "Startup India"
+    },
+    {
+        "id": "nsfbc-education-loan",
+        "name": "NSFDC Education Loan",
+        "category": "Education Loan",
+        "minAge": 18,
+        "maxAge": 35,
+        "incomeLimit": 300000,
+        "occupationTags": [
+            "Student",
+            "SC"
+        ],
+        "state": "All India",
+        "descriptionSimple": "Low-interest education loans for students belonging to Scheduled Castes.",
+        "benefitsSimple": "Loan up to ₹10 Lakhs (India) / ₹20 Lakhs (Abroad) at 4% interest.",
+        "documentsRequired": [
+            "Caste Certificate",
+            "Income Certificate",
+            "Admission Proof"
+        ],
+        "applyLink": "https://nsfdc.nic.in/",
+        "officialSource": "Ministry of Social Justice"
+    }
+]

@@ -1,0 +1,10 @@
+# Firebase Integration - .gitignore additions
+
+# Environment variables
+.env.local
+.env*.local
+
+# Firebase cache
+.firebase/
+firebase-debug.log
+firestore-debug.log

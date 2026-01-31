@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Users collection - users can only read/write their own data
+    match /users/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Citizen Profiles
+    match /citizenProfiles/{profileId} {
+      // Anyone authenticated can read profiles
+      allow read: if isAuthenticated();
+      
+      // Users can create their own profiles or volunteers can create for beneficiaries
+      allow create: if isAuthenticated();
+      
+      // Users can update/delete their own profiles or profiles they manage
+      allow update, delete: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || 
+         resource.data.managedBy == request.auth.uid ||
+         resource.data.createdBy == request.auth.uid);
+    }
+    
+    // Schemes - public read, admin write
+    match /schemes/{schemeId} {
+      allow read: if true; // Public read access
+      allow write: if isAdmin(); // Only admins can modify schemes
+    }
+    
+    // Scheme Status - users can only access their own status
+    match /schemeStatus/{statusId} {
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      allow write: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+    }
+    
+    // Eligibility Tokens - users can only access their own tokens
+    match /eligibilityTokens/{tokenId} {
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false; // Tokens are immutable
+    }
+  }
+}
