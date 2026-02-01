@@ -10,20 +10,21 @@ import { getAllSchemes } from "@/services/schemes"
 import { CitizenSchemeStatus, Scheme, Beneficiary } from "@/lib/types"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Bookmark, Send, CheckCircle2, LayoutDashboard, UserCircle, Settings2, Users, Trash2, FileText, Plus } from "lucide-react"
+import { Bookmark, Send, CheckCircle2, LayoutDashboard, UserCircle, Settings2, Users, Trash2, FileText, Plus, ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { StatusTimeline } from "@/components/status-timeline"
 import { getUserBeneficiaries, addBeneficiary, deleteBeneficiary } from "@/services/beneficiaries"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { DocumentVault } from "@/components/document-vault"
 
 export default function ProfilePage() {
     const { language, t } = useLanguage()
     const [user, setUser] = useState<any>(null)
     const [trackedSchemes, setTrackedSchemes] = useState<(CitizenSchemeStatus & { scheme?: Scheme })[]>([])
     const [loading, setLoading] = useState(true)
-    const [activeTab, setActiveTab] = useState<'profile' | 'schemes' | 'beneficiaries'>('profile')
+    const [activeTab, setActiveTab] = useState<'profile' | 'schemes' | 'beneficiaries' | 'vault'>('profile')
     const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([])
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
     const [isSuccess, setIsSuccess] = useState(false)
@@ -97,7 +98,7 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto space-y-10 pb-20 animate-in fade-in duration-700">
+        <div className="max-w-6xl mx-auto space-y-10 pb-48 animate-in fade-in duration-700">
             {/* Dashboard Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
                 <div className="space-y-2">
@@ -108,11 +109,11 @@ export default function ProfilePage() {
                     <p className="text-slate-500 font-medium">{t.dashboard.subtitle}</p>
                 </div>
 
-                <div className="flex bg-slate-100 p-1.5 rounded-2xl gap-2">
+                <div className="flex bg-slate-100 p-1.5 rounded-2xl gap-2 overflow-x-auto no-scrollbar">
                     <button
                         onClick={() => setActiveTab('profile')}
                         className={cn(
-                            "flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all",
+                            "flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all hover-lift shrink-0",
                             activeTab === 'profile' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
                         )}
                     >
@@ -121,7 +122,7 @@ export default function ProfilePage() {
                     <button
                         onClick={() => setActiveTab('schemes')}
                         className={cn(
-                            "flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all",
+                            "flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all hover-lift shrink-0",
                             activeTab === 'schemes' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
                         )}
                     >
@@ -131,11 +132,20 @@ export default function ProfilePage() {
                     <button
                         onClick={() => setActiveTab('beneficiaries')}
                         className={cn(
-                            "flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all",
+                            "flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all hover-lift shrink-0",
                             activeTab === 'beneficiaries' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
                         )}
                     >
                         <Users className="h-4 w-4" /> {t.dashboard.tabs.beneficiaries}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('vault')}
+                        className={cn(
+                            "flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all hover-lift shrink-0",
+                            activeTab === 'vault' ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                        )}
+                    >
+                        <ShieldCheck className="h-4 w-4" /> {t.dashboard.tabs.vault}
                     </button>
                 </div>
             </div>
@@ -151,7 +161,7 @@ export default function ProfilePage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-in slide-in-from-right-4 duration-500">
                         {trackedSchemes.length > 0 ? (
                             trackedSchemes.map((item) => (
-                                <Card key={item.id} className="border-0 bg-white shadow-sm rounded-[2rem] overflow-hidden hover:shadow-xl hover:shadow-blue-500/5 transition-all group border border-slate-100">
+                                <Card key={item.id} className="border-0 bg-white shadow-sm rounded-[2rem] overflow-hidden hover:shadow-xl hover:shadow-blue-500/5 transition-all group border border-slate-100 hover-lift">
                                     <CardHeader className="p-8 pb-4">
                                         <div className="flex justify-between items-start mb-4">
                                             <Badge className={cn(

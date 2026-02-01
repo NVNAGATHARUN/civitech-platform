@@ -24,6 +24,10 @@ import { DashboardLayout } from "@/components/dashboard-layout"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { RoleGuard } from "@/components/role-guard"
+import { IndiaHeatmap } from "@/components/india-heatmap"
+import { EligibilityGraph } from "@/components/eligibility-graph"
+import { WelfareBridge } from "@/components/welfare-bridge"
+import { RegionalWelfareBridge } from "@/services/analytics"
 
 import { seedRobustSchemes } from "@/lib/seed-robust"
 
@@ -53,6 +57,8 @@ export default function AdminDashboard() {
             { reason: "Missing Documentation", count: 30 }
         ]
     })
+    const [regionalDemand, setRegionalDemand] = useState<any[]>([])
+    const [bridgeData, setBridgeData] = useState<RegionalWelfareBridge[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
@@ -63,6 +69,12 @@ export default function AdminDashboard() {
 
                 const { getSchemeAnalytics } = await import("@/services/schemeStatus");
                 const analytics = await getSchemeAnalytics();
+
+                const { getRegionalDemand, getRegionalWelfareBridge } = await import("@/services/analytics");
+                const regional = await getRegionalDemand();
+                const bridge = await getRegionalWelfareBridge();
+                setRegionalDemand(regional);
+                setBridgeData(bridge);
 
                 setStats(prev => ({
                     ...prev,
@@ -106,7 +118,7 @@ export default function AdminDashboard() {
                     </div>
 
                     {/* KPI Row */}
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <KPIComponent
                             label="Total Assessed"
                             value={loading ? "..." : stats.totalCitizens}
@@ -137,10 +149,27 @@ export default function AdminDashboard() {
                         />
                     </div>
 
+                    {/* India Heatmap - ENHANCED SECTION */}
+                    <IndiaHeatmap data={regionalDemand} />
+
+                    {/* Eligibility Graph - NEW SECTION */}
+                    <div className="grid gap-10">
+                        <EligibilityGraph />
+                    </div>
+
+                    {/* Regional Welfare Bridge */}
+                    <div className="grid gap-10">
+                        <div className="space-y-4">
+                            <h3 className="text-2xl font-black text-[#0F172A] tracking-tight">Regional Welfare Bridge</h3>
+                            <p className="text-slate-500 font-medium">Analyzing the conversion gap between scheme interest and benefit delivery.</p>
+                        </div>
+                        <WelfareBridge data={bridgeData} />
+                    </div>
+
                     {/* Main Content Grid */}
                     <div className="grid gap-8 lg:grid-cols-3">
                         {/* Funnel Chart */}
-                        <Card className="lg:col-span-2 border-slate-200 shadow-sm rounded-2xl overflow-hidden">
+                        <Card className="lg:col-span-2 border-slate-200 shadow-sm rounded-2xl overflow-hidden hover:shadow-lg transition-all hover-lift">
                             <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
                                 <div className="flex items-center justify-between">
                                     <CardTitle className="text-lg font-black text-[#0F172A]">Engagement Funnel</CardTitle>
@@ -154,7 +183,7 @@ export default function AdminDashboard() {
                         </Card>
 
                         {/* Funnel Drop-offs */}
-                        <Card className="border-slate-200 shadow-sm rounded-2xl overflow-hidden">
+                        <Card className="border-slate-200 shadow-sm rounded-2xl overflow-hidden hover:shadow-lg transition-all hover-lift">
                             <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
                                 <CardTitle className="text-lg font-black text-[#0F172A]">Drop-off Analysis</CardTitle>
                                 <CardDescription className="text-slate-500 mt-1">Primary reasons for ineligibility.</CardDescription>
@@ -196,10 +225,10 @@ export default function AdminDashboard() {
 
 function KPIComponent({ label, value, trend, icon, color }: { label: string, value: string | number, trend: string, icon: React.ReactNode, color: string }) {
     return (
-        <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all">
+        <Card className="border-slate-200 shadow-sm hover:shadow-xl transition-all hover-lift group">
             <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                    <div className={cn("p-2 rounded-lg",
+                    <div className={cn("p-2 rounded-lg transition-colors group-hover:scale-110 duration-500",
                         color === "blue" && "bg-blue-50 text-blue-600",
                         color === "emerald" && "bg-emerald-50 text-emerald-600",
                         color === "indigo" && "bg-indigo-50 text-indigo-600",

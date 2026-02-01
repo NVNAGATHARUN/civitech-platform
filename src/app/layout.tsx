@@ -10,6 +10,8 @@ export const metadata: Metadata = {
 };
 
 import { LanguageProvider } from "@/lib/LanguageContext";
+import { Toaster } from "sonner";
+import Footer from "@/components/footer";
 
 export default function RootLayout({
   children,
@@ -18,13 +20,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={cn("min-h-screen bg-background font-sans antialiased")}>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#2563eb" />
+      </head>
+      <body className={cn("min-h-screen bg-background font-sans antialiased flex flex-col")}>
         <LanguageProvider>
           <Navbar />
-          <main className="min-h-screen pt-24 pb-12"> {/* Modified className */}
+          <main className="flex-1 pt-24">
             {children}
           </main>
-          <SahayakChat /> {/* Added SahayakChat component */}
+          <Footer />
+          <SahayakChat />
+          <Toaster position="top-center" richColors />
         </LanguageProvider>
       </body>
     </html>

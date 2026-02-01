@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { signIn, signUp, resetPassword } from "@/services/auth"
+import { toast } from "sonner"
 import { Lock, AlertCircle, CheckCircle2 } from "lucide-react"
 
 export function AuthForm() {
@@ -44,6 +45,7 @@ export function AuthForm() {
             } else {
                 const result = await signUp(email, password)
                 if (result.success) {
+                    toast.success("Welcome! A digital verification email has been sent to your primary address.")
                     router.push("/profile")
                 } else {
                     setError(result.error || "Signup failed")

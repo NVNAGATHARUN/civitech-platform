@@ -8,20 +8,14 @@ import { auth } from "@/lib/firebase";
 import { signOut } from "@/services/auth";
 import { usePathname, useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Globe, Building2, LogOut } from "lucide-react";
+import { useUserRole } from "@/lib/useUserRole";
+import { Globe, Building2, LogOut, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function Navbar() {
-    const [user, setUser] = useState<User | null>(null);
+    const { user, role, loading: roleLoading } = useUserRole();
     const { language, setLanguage, t } = useLanguage();
     const router = useRouter();
-
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser);
-        });
-        return () => unsubscribe();
-    }, []);
 
     const handleLogout = async () => {
         await signOut();
@@ -67,35 +61,45 @@ export default function Navbar() {
 
                     <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
-                    {user ? (
-                        <div className="flex items-center gap-3">
-                            <Link href="/profile">
-                                <Button variant="ghost" size="sm" className="h-9 px-4 rounded-full font-black text-[10px] uppercase tracking-widest text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-all">
-                                    {t.nav.profile}
+                    {!roleLoading && (
+                        user ? (
+                            <div className="flex items-center gap-3">
+                                {role === 'admin' && (
+                                    <Link href="/admin">
+                                        <Button variant="ghost" size="sm" className="h-9 px-4 rounded-full font-black text-[10px] uppercase tracking-widest text-blue-600 bg-blue-50/50 hover:bg-blue-100 transition-all border border-blue-100/50">
+                                            <Shield className="h-3 w-3 mr-2" />
+                                            {t.nav.admin}
+                                        </Button>
+                                    </Link>
+                                )}
+                                <Link href="/profile">
+                                    <Button variant="ghost" size="sm" className="h-9 px-4 rounded-full font-black text-[10px] uppercase tracking-widest text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition-all">
+                                        {t.nav.profile}
+                                    </Button>
+                                </Link>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={handleLogout}
+                                    className="h-9 w-9 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                                >
+                                    <LogOut className="h-4 w-4" />
                                 </Button>
-                            </Link>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={handleLogout}
-                                className="h-9 w-9 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
-                            >
-                                <LogOut className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2">
-                            <Link href="/login" className="hidden sm:block">
-                                <Button variant="ghost" size="sm" className="h-9 px-4 rounded-full font-black text-[10px] uppercase tracking-widest text-slate-600">
-                                    {t.nav.login}
-                                </Button>
-                            </Link>
-                            <Link href="/check">
-                                <Button size="sm" className="h-9 px-6 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/20 border-0">
-                                    {t.nav.getStarted}
-                                </Button>
-                            </Link>
-                        </div>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <Link href="/login" className="hidden sm:block">
+                                    <Button variant="ghost" size="sm" className="h-9 px-4 rounded-full font-black text-[10px] uppercase tracking-widest text-slate-600">
+                                        {t.nav.login}
+                                    </Button>
+                                </Link>
+                                <Link href="/check">
+                                    <Button size="sm" className="h-9 px-6 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/20 border-0">
+                                        {t.nav.getStarted}
+                                    </Button>
+                                </Link>
+                            </div>
+                        )
                     )}
                 </div>
             </header>

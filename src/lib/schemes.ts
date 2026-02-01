@@ -42,3 +42,13 @@ export function getMatchedSchemes(profile: CitizenProfile['profileData']): Schem
 export function getSchemeById(id: string): Scheme | undefined {
     return schemes.find(s => s.id === id);
 }
+
+export function getSchemesByState(state: string): Scheme[] {
+    const normalizedState = state.toLowerCase();
+    return schemes.filter(scheme => {
+        if (!scheme.states) return false;
+        return scheme.states.some(s =>
+            s.toLowerCase() === "all" || s.toLowerCase() === normalizedState
+        );
+    });
+}

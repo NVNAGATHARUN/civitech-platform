@@ -5,10 +5,15 @@ import { createWorker } from "tesseract.js"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { CheckCircle2, AlertCircle, FileText, Lock } from "lucide-react"
+import { CheckCircle2, AlertCircle, FileText, Lock, FileDigit } from "lucide-react"
 import { auth } from "@/lib/firebase"
 import { Scheme, EligibilityToken } from "@/lib/types"
 import { useLanguage } from "@/lib/LanguageContext"
+
+// PDF.js worker setup
+import * as pdfjsLib from 'pdfjs-dist';
+// Use a stable, high-availability CDN for the worker to avoid fetch errors
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
 interface LocalDocVerifierProps {
     scheme: Scheme;
@@ -27,19 +32,11 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
         const file = e.target.files?.[0]
         if (!file) return
 
-        // Check if file is a PDF
-        if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-            setStatus('failure')
-            setMessage("PDF files are not supported. Please upload an image (JPG/PNG) of your document for secure local processing.")
-            return
-        }
-
         setStatus('processing')
         setMessage("Initializing Secure Worker...")
         setProgress(10)
 
         try {
-            // Modern Tesseract.js initialization
             const worker = await createWorker('eng', 1, {
                 logger: m => {
                     if (m.status === 'recognizing text') {
@@ -52,27 +49,50 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
                 tessedit_char_whitelist: '0123456789.:abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ₹ ',
             });
 
-            setMessage("Reading Document...")
-            setProgress(30)
+            let combinedText = "";
 
-            // Convert file to Data URL to ensure compatibility with Tesseract.js in all browsers
-            const reader = new FileReader();
-            const dataUrl = await new Promise<string>((resolve, reject) => {
-                reader.onload = () => resolve(reader.result as string);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
+            if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                setMessage("Extracting PDF Content...")
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-            setMessage("Scanning for data...")
-            const { data: { text } } = await worker.recognize(dataUrl)
-            setDebugText(text)
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    setMessage(`Processing Page ${i}...`);
+                    const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: 2.0 });
 
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    if (context) {
+                        await page.render({ canvasContext: context, viewport, canvas: canvas }).promise;
+                        const dataUrl = canvas.toDataURL('image/png');
+                        const { data: { text } } = await worker.recognize(dataUrl);
+                        combinedText += text + " ";
+                    }
+                }
+            } else {
+                setMessage("Reading Image...")
+                const reader = new FileReader();
+                const dataUrl = await new Promise<string>((resolve, reject) => {
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+
+                setMessage("Scanning for data...")
+                const { data: { text } } = await worker.recognize(dataUrl)
+                combinedText = text;
+            }
+
+            setDebugText(combinedText)
             await worker.terminate()
-            // Verification Logic (Client-Side)
-            verifyDocument(text)
+            verifyDocument(combinedText)
 
         } catch (err: any) {
-            console.error("OCR Error Details:", err)
+            console.error("OCR/PDF Error Details:", err)
             setStatus('failure')
             setMessage(`Failed to read document: ${err.message || 'Unknown Error'}`)
         }
@@ -188,14 +208,16 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
 
                 {status === 'idle' && (
                     <div className="w-full">
-                        <Button variant="outline" className="w-full relative cursor-pointer" asChild>
-                            <label>
-                                <FileText className="mr-2 h-4 w-4" />
-                                {t.verifier.select}
-                                <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
-                            </label>
-                        </Button>
-                        <p className="text-xs text-muted-foreground mt-2">Supports Example: &quot;Annual Income: 120000&quot; or &quot;Aadhaar: 1234 5678 9012&quot;</p>
+                        <div className="flex flex-col gap-2">
+                            <Button variant="outline" className="w-full relative cursor-pointer" asChild>
+                                <label>
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    {t.verifier.select}
+                                    <input type="file" className="hidden" accept="image/*,application/pdf" onChange={handleFileUpload} />
+                                </label>
+                            </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">Supports JPG, PNG, and PDF documents (Verified locally).</p>
                     </div>
                 )}
 
@@ -226,7 +248,7 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
                         {debugText && (
                             <details className="text-left w-full mt-2">
                                 <summary className="text-xs cursor-pointer">Debug OCR Text</summary>
-                                <pre className="text-[10px] bg-muted p-2 rounded overflow-auto max-h-20">{debugText}</pre>
+                                <pre className="text-[10px] bg-muted p-2 rounded overflow-auto max-h-40">{debugText}</pre>
                             </details>
                         )}
                     </div>

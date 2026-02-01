@@ -9,7 +9,9 @@
         "occupationTags": [
             "Student"
         ],
-        "state": "All India",
+        "states": [
+            "ALL"
+        ],
         "descriptionSimple": "A fully IT-based student financial aid authority to administer and monitor scholarship as well as educational loan schemes.",
         "benefitsSimple": "Single window for education loans and scholarships.",
         "documentsRequired": [
@@ -21,27 +23,99 @@
         "officialSource": "Ministry of Finance"
     },
     {
-        "id": "aikyte-scholarship",
-        "name": "AICTE Pragati Scholarship for Girls",
-        "category": "Scholarship",
-        "minAge": 16,
-        "maxAge": 25,
+        "id": "maha-jyoti",
+        "name": "MahaJyoti Free Coaching",
+        "category": "Education",
+        "minAge": 18,
+        "maxAge": 30,
         "incomeLimit": 800000,
+        "occupationTags": [
+            "Student",
+            "OBC"
+        ],
+        "states": [
+            "Maharashtra"
+        ],
+        "descriptionSimple": "Free coaching for JEE/NEET and competitive exams for OBC/VST/VJNT students in Maharashtra.",
+        "benefitsSimple": "Free high-quality coaching + monthly stipend of ₹5,000.",
+        "documentsRequired": [
+            "Caste Certificate",
+            "Domicile of Maharashtra",
+            "Class 10 Marksheet"
+        ],
+        "applyLink": "https://mahajyoti.org.in/",
+        "officialSource": "Govt of Maharashtra"
+    },
+    {
+        "id": "telangana-rythu-bandhu",
+        "name": "Rythu Bandhu Scheme",
+        "category": "Agriculture",
+        "minAge": 18,
+        "maxAge": 100,
+        "incomeLimit": 0,
+        "occupationTags": [
+            "Farmer"
+        ],
+        "states": [
+            "Telangana"
+        ],
+        "descriptionSimple": "Investment support scheme for agriculture and horticulture crops in Telangana.",
+        "benefitsSimple": "₹5,000 per acre per season to every farmer.",
+        "documentsRequired": [
+            "Pattadar Passbook",
+            "Aadhaar Card",
+            "Bank Account"
+        ],
+        "applyLink": "http://rythubandhu.telangana.gov.in/",
+        "officialSource": "Govt of Telangana"
+    },
+    {
+        "id": "ka-gruha-lakshmi",
+        "name": "Gruha Lakshmi Scheme",
+        "category": "Social Welfare",
+        "minAge": 18,
+        "maxAge": 100,
+        "incomeLimit": 0,
+        "occupationTags": [
+            "Female",
+            "Housewife"
+        ],
+        "states": [
+            "Karnataka"
+        ],
+        "descriptionSimple": "Financial assistance to the woman head of the family in Karnataka.",
+        "benefitsSimple": "Monthly cash transfer of ₹2,000 directly to bank accounts.",
+        "documentsRequired": [
+            "Aadhaar Card",
+            "Ration Card",
+            "Mobile Number"
+        ],
+        "applyLink": "https://sevasindhu.karnataka.gov.in/",
+        "officialSource": "Govt of Karnataka"
+    },
+    {
+        "id": "tn-pudhumai-penn",
+        "name": "Moovalur Ramamirtham Ammaiyar Pudhumai Penn",
+        "category": "Education",
+        "minAge": 17,
+        "maxAge": 25,
+        "incomeLimit": 0,
         "occupationTags": [
             "Student",
             "Female"
         ],
-        "state": "All India",
-        "descriptionSimple": "Scholarship for girl students pursuing technical education.",
-        "benefitsSimple": "₹50,000 per annum for every year of study.",
-        "documentsRequired": [
-            "Aadhaar Card",
-            "Class 10/12 Marksheet",
-            "Admission Letter",
-            "Income Certificate"
+        "states": [
+            "Tamil Nadu"
         ],
-        "applyLink": "https://scholarships.gov.in/",
-        "officialSource": "AICTE"
+        "descriptionSimple": "Financial assistance for girl students who studied in government schools for higher education.",
+        "benefitsSimple": "Monthly incentive of ₹1,000 until completion of degree/diploma.",
+        "documentsRequired": [
+            "Transfer Certificate",
+            "Aadhaar Card",
+            "Bank Passbook"
+        ],
+        "applyLink": "https://www.pudhumaipenn.tn.gov.in/",
+        "officialSource": "Govt of Tamil Nadu"
     },
     {
         "id": "skill-india-pmkvj",
@@ -54,58 +128,40 @@
             "Unemployed",
             "Dropout"
         ],
-        "state": "All India",
+        "states": [
+            "ALL"
+        ],
         "descriptionSimple": "Free short-term skill training to become employable.",
         "benefitsSimple": "Free training + Skill Certification + Placement Assistance.",
         "documentsRequired": [
             "Aadhaar Card",
-            "Bank Account Details",
-            "Education Certificate (if any)"
+            "Bank Account Details"
         ],
         "applyLink": "https://www.pmkvyofficial.org/",
         "officialSource": "Ministry of Skill Development"
     },
     {
-        "id": "nxs-startup-india",
-        "name": "Startup India Seed Fund",
-        "category": "Entrepreneurship",
-        "minAge": 18,
-        "maxAge": 100,
-        "incomeLimit": 0,
-        "occupationTags": [
-            "Entrepreneur"
-        ],
-        "state": "All India",
-        "descriptionSimple": "Financial assistance to startups for proof of concept, prototype development, and product trials.",
-        "benefitsSimple": "Up to ₹20 Lakhs as grant/debt.",
-        "documentsRequired": [
-            "DPIIT Recognition",
-            "Project Proposal",
-            "Company Incorporation"
-        ],
-        "applyLink": "https://seedfund.startupindia.gov.in/",
-        "officialSource": "Startup India"
-    },
-    {
-        "id": "nsfbc-education-loan",
-        "name": "NSFDC Education Loan",
-        "category": "Education Loan",
-        "minAge": 18,
-        "maxAge": 35,
+        "id": "up-kanya-sumangala",
+        "name": "Mukhya Mantri Kanya Sumangala Yojana",
+        "category": "Social Welfare",
+        "minAge": 0,
+        "maxAge": 21,
         "incomeLimit": 300000,
         "occupationTags": [
-            "Student",
-            "SC"
+            "Female",
+            "Student"
         ],
-        "state": "All India",
-        "descriptionSimple": "Low-interest education loans for students belonging to Scheduled Castes.",
-        "benefitsSimple": "Loan up to ₹10 Lakhs (India) / ₹20 Lakhs (Abroad) at 4% interest.",
+        "states": [
+            "Uttar Pradesh"
+        ],
+        "descriptionSimple": "Conditional cash transfer to girl children in Uttar Pradesh to ensure health and education.",
+        "benefitsSimple": "Total ₹15,000 in 6 stages from birth to graduation.",
         "documentsRequired": [
-            "Caste Certificate",
-            "Income Certificate",
-            "Admission Proof"
+            "Birth Certificate",
+            "Aadhaar of Parents",
+            "Income Proof"
         ],
-        "applyLink": "https://nsfdc.nic.in/",
-        "officialSource": "Ministry of Social Justice"
+        "applyLink": "https://mksy.up.gov.in/",
+        "officialSource": "Govt of Uttar Pradesh"
     }
 ]

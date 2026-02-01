@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { LocalDocVerifier } from "@/components/local-doc-verifier"
+import { DraftService } from "@/services/drafts"
 import Link from "next/link"
 import {
     ArrowRight,
@@ -37,6 +38,7 @@ export default function CitizenCheckPage() {
     const { t } = useLanguage()
     const [step, setStep] = useState<'form' | 'results'>('form')
     const [loading, setLoading] = useState(false)
+    const [draftSaved, setDraftSaved] = useState(false)
     const [matches, setMatches] = useState<SchemeWithReason[]>([])
 
     // Form State - Matches CitizenProfile interface
@@ -99,17 +101,28 @@ export default function CitizenCheckPage() {
             setMatches(results)
             setStep('results')
 
-        } catch (err) {
-            console.error("Submission Error:", err)
         } finally {
             setLoading(false)
         }
     }
 
+    const handleSaveDraft = () => {
+        DraftService.saveDraft({
+            name: formData.name || "Draft Citizen",
+            age: parseInt(formData.age) || 0,
+            occupation: formData.occupation,
+            income: parseInt(formData.incomeValue) || 0,
+            state: formData.state,
+            district: formData.district
+        });
+        setDraftSaved(true);
+        setTimeout(() => setDraftSaved(false), 3000);
+    }
+
     return (
         <div className="min-h-screen bg-[#F8FAFC]">
-            {/* Header */}
-            <div className="bg-white border-b border-slate-200 py-4 px-8 sticky top-0 z-10">
+            {/* Header - Adjusted top for fixed navbar */}
+            <div className="bg-white/80 backdrop-blur-md border-b border-slate-200 py-4 px-8 sticky top-0 md:top-[76px] z-40 transition-all duration-300 shadow-sm">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Link href="/" className="text-slate-400 hover:text-slate-600 transition-colors">
@@ -130,7 +143,7 @@ export default function CitizenCheckPage() {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto py-10 px-6 sm:px-8">
+            <div className="max-w-7xl mx-auto py-10 pb-32 px-6 sm:px-8">
                 {step === 'form' && (
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                         <div className="lg:col-span-8 space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
@@ -240,21 +253,42 @@ export default function CitizenCheckPage() {
                                     </CardContent>
                                 </Card>
 
-                                <Button
-                                    type="submit"
-                                    size="lg"
-                                    className="w-full h-16 text-lg font-black bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all rounded-xl"
-                                    disabled={loading}
-                                >
-                                    {loading ? (
-                                        <span className="flex items-center gap-3">
-                                            <Sparkles className="h-5 w-5 animate-pulse" />
-                                            ANALYZING ELIGIBILITY...
-                                        </span>
-                                    ) : (
-                                        <>FIND MATCHING SCHEMES <ArrowRight className="ml-2 h-5 w-5" /></>
-                                    )}
-                                </Button>
+                                <div className="space-y-4 mt-6">
+                                    <Button
+                                        type="submit"
+                                        size="lg"
+                                        className="w-full h-16 text-lg font-black bg-blue-600 hover:bg-blue-700 shadow-xl shadow-blue-200 transition-all rounded-xl hover-lift"
+                                        disabled={loading}
+                                    >
+                                        {loading ? (
+                                            <span className="flex items-center gap-3">
+                                                <Sparkles className="h-5 w-5 animate-pulse" />
+                                                ANALYZING ELIGIBILITY...
+                                            </span>
+                                        ) : (
+                                            <>FIND MATCHING SCHEMES <ArrowRight className="ml-2 h-5 w-5" /></>
+                                        )}
+                                    </Button>
+
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="lg"
+                                        className={cn(
+                                            "w-full h-14 font-black border-2 transition-all rounded-xl",
+                                            draftSaved ? "bg-emerald-50 border-emerald-500 text-emerald-600" : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                                        )}
+                                        onClick={handleSaveDraft}
+                                    >
+                                        {draftSaved ? (
+                                            <span className="flex items-center gap-2">
+                                                <CheckCircle2 className="h-5 w-5" /> DRAFT SAVED LOCALLY
+                                            </span>
+                                        ) : (
+                                            <span>SAVE AS DRAFT (OFFLINE)</span>
+                                        )}
+                                    </Button>
+                                </div>
                             </form>
                         </div>
 

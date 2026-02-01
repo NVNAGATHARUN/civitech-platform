@@ -54,6 +54,14 @@ NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 - `src/services/profile.ts` - Profile management
 - `src/services/schemeStatus.ts` - Scheme tracking
 
+## Troubleshooting
+
+### Connection failed (FirebaseError)
+If you see a `Connection failed` error in the console:
+1. **gRPC Blocked**: Your network might be blocking the default Firebase connection (gRPC/WebSockets). The app is now configured to fallback to **Long Polling**, which should resolve this.
+2. **Database Not Created**: Ensure you have clicked "Create Database" in the [Firebase Console](https://console.firebase.google.com/project/hackfest-2k26/firestore).
+3. **Region Issues**: Make sure your Firestore location is set.
+
 ## Need Help?
 
 Check the detailed walkthrough in the artifacts or Firebase documentation.

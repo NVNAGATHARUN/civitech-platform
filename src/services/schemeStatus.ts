@@ -12,6 +12,8 @@ import {
 } from "firebase/firestore";
 import { CitizenSchemeStatus, SchemeStatus } from "@/lib/types";
 
+import { EmailService } from "@/services/email";
+
 export async function updateSchemeStatus(
     userId: string,
     schemeId: string,
@@ -21,6 +23,15 @@ export async function updateSchemeStatus(
     try {
         const statusId = `${userId}_${schemeId}`;
         const docRef = doc(db, "schemeStatus", statusId);
+
+        // Fetch user email and scheme name for the notification
+        const [userSnap, schemeSnap] = await Promise.all([
+            getDoc(doc(db, "users", userId)),
+            getDoc(doc(db, "schemes", schemeId))
+        ]);
+
+        const userEmail = userSnap.exists() ? userSnap.data().email : null;
+        const schemeName = schemeSnap.exists() ? schemeSnap.data().name : schemeId;
 
         const statusData: any = {
             userId,
@@ -35,6 +46,12 @@ export async function updateSchemeStatus(
         }
 
         await setDoc(docRef, statusData, { merge: true });
+
+        // Trigger status update email if user email is found
+        if (userEmail) {
+            await EmailService.sendStatusUpdateEmail(userEmail, schemeName, status);
+        }
+
         return { success: true };
     } catch (error: any) {
         console.error("Error updating scheme status:", error);

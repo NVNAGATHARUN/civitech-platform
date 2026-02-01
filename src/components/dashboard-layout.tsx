@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button"
 
 interface DashboardLayoutProps {
     children: React.ReactNode
-    role: "volunteer" | "admin"
+    role: "volunteer" | "admin" | "citizen"
 }
 
 export function DashboardLayout({ children, role }: DashboardLayoutProps) {
@@ -37,14 +37,21 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
             { name: "Citizens", href: "/admin/citizens", icon: Users },
             { name: "Settings", href: "/admin/settings", icon: Settings },
         ]
-        : [
-            { name: "Dashboard", href: "/volunteer", icon: LayoutDashboard },
-            { name: "Impact Map", href: "/admin/impact", icon: Globe },
-            { name: "Beneficiaries", href: "/profile", icon: Users },
-            { name: "Check Eligibility", href: "/check", icon: Search },
-            { name: "Resources", href: "/resources", icon: FileText },
-            { name: "Settings", href: "/volunteer/settings", icon: Settings },
-        ]
+        : role === "volunteer"
+            ? [
+                { name: "Dashboard", href: "/volunteer", icon: LayoutDashboard },
+                { name: "Impact Map", href: "/admin/impact", icon: Globe },
+                { name: "Beneficiaries", href: "/profile", icon: Users },
+                { name: "Check Eligibility", href: "/check", icon: Search },
+                { name: "Resources", href: "/resources", icon: FileText },
+                { name: "Settings", href: "/volunteer/settings", icon: Settings },
+            ]
+            : [
+                { name: "My Schemes", href: "/schemes", icon: FileText },
+                { name: "My Profile", href: "/profile", icon: UserCircle },
+                { name: "Resources", href: "/resources", icon: Globe },
+                { name: "Settings", href: "/profile/settings", icon: Settings },
+            ]
 
     return (
         <div className="flex h-screen bg-[#F8FAFC]">
@@ -121,7 +128,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
                 </header>
 
                 {/* Page Content */}
-                <div className="flex-1 overflow-y-auto p-8">
+                <div className="flex-1 overflow-y-auto p-8 pb-32">
                     <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500">
                         {children}
                     </div>

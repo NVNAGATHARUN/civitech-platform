@@ -18,6 +18,8 @@ import { auth } from "@/lib/firebase"
 import { updateSchemeStatus } from "@/services/schemeStatus"
 import { cn } from "@/lib/utils"
 
+import { toast } from "sonner"
+
 export function SchemeCard({ scheme, isRecommended = false }: { scheme: Scheme, isRecommended?: boolean }) {
     const [loading, setLoading] = useState<'planned' | 'applied' | null>(null)
     const [status, setStatus] = useState<SchemeStatus | null>(null)
@@ -58,8 +60,10 @@ export function SchemeCard({ scheme, isRecommended = false }: { scheme: Scheme, 
         try {
             await updateSchemeStatus(user.uid, scheme.id, action)
             setStatus(action)
+            toast.info("Status updated! Tracking email dispatched.")
         } catch (e) {
             console.error(e)
+            toast.error("Failed to update status.")
         } finally {
             setLoading(null)
         }

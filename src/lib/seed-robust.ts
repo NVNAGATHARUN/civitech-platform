@@ -71,5 +71,62 @@ export async function seedRobustSchemes() {
         await setDoc(doc(collection(db, "schemes"), scheme.id), scheme);
         console.log(`Seeded: ${scheme.name}`);
     }
+
+    // Seed Regional Demand Mock Data
+    const MOCK_REGIONS = [
+        { state: "Maharashtra", count: 45 },
+        { state: "Delhi", count: 28 },
+        { state: "Karnataka", count: 32 },
+        { state: "Tamil Nadu", count: 22 },
+        { state: "Uttar Pradesh", count: 38 },
+        { state: "Gujarat", count: 18 },
+        { state: "Rajasthan", count: 12 },
+        { state: "Telangana", count: 25 },
+        { state: "West Bengal", count: 15 },
+        { state: "Kerala", count: 10 }
+    ];
+
+    console.log("Seeding regional assessment logs...");
+    for (const region of MOCK_REGIONS) {
+        for (let i = 0; i < region.count; i++) {
+            const userId = `user-${region.state}-${i}`;
+            const logId = `log-${region.state}-${i}`;
+
+            // 1. Seed Assessment Log (Demand)
+            await setDoc(doc(collection(db, "citizenAssessmentLog"), logId), {
+                userId: userId,
+                profileData: {
+                    state: region.state,
+                    name: `Demo Citizen ${i}`,
+                    age: 25 + Math.floor(Math.random() * 20),
+                    occupationTags: ["Farmer", "Student"][Math.floor(Math.random() * 2)]
+                },
+                createdAt: new Date()
+            });
+
+            // 2. Seed Profile for joined data
+            await setDoc(doc(collection(db, "citizenProfiles"), userId), {
+                profileData: {
+                    state: region.state,
+                    name: `Demo Citizen ${i}`,
+                    age: 30
+                }
+            });
+
+            // 3. Seed Status (Supply) - Only for some users to show a "Gap"
+            // Let's say 40-70% of people get the benefit in our mock data
+            const supplyRate = 0.4 + (Math.random() * 0.3);
+            if (i < region.count * supplyRate) {
+                const statusId = `${userId}_pm-kisan`;
+                await setDoc(doc(collection(db, "schemeStatus"), statusId), {
+                    userId: userId,
+                    schemeId: "pm-kisan",
+                    status: "benefit_received",
+                    updatedAt: new Date()
+                });
+            }
+        }
+    }
+
     return ROBUST_SCHEMES;
 }

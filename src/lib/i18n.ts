@@ -37,7 +37,8 @@ export const translations = {
             tabs: {
                 identity: "IDENTITY",
                 tracker: "TRACKER",
-                beneficiaries: "BENEFICIARIES"
+                beneficiaries: "BENEFICIARIES",
+                vault: "VERIFIED VAULT"
             },
             addBeneficiary: "Add Family Member",
             saveBeneficiary: "SAVE BENEFICIARY"
@@ -88,7 +89,8 @@ export const translations = {
             tabs: {
                 identity: "पहचान",
                 tracker: "ट्रैकर",
-                beneficiaries: "लाभार्थी"
+                beneficiaries: "लाभार्थी",
+                vault: "सत्यापित वॉल्ट"
             },
             addBeneficiary: "परिवार के सदस्य को जोड़ें",
             saveBeneficiary: "लाभार्थी को सुरक्षित करें"
@@ -139,7 +141,8 @@ export const translations = {
             tabs: {
                 identity: "గుర్తింపు",
                 tracker: "ట్రాకర్",
-                beneficiaries: "లబ్ధిదారులు"
+                beneficiaries: "లబ్ధిదారులు",
+                vault: "ధృవీకరించబడిన వాల్ట్"
             },
             addBeneficiary: "కుటుంబ సభ్యుడిని జోడించండి",
             saveBeneficiary: "లబ్ధిదారుడిని సేవ్ చేయండి"

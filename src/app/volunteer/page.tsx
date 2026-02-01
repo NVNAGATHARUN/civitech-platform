@@ -21,19 +21,74 @@ import {
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { DashboardLayout } from "@/components/dashboard-layout"
+import { DraftService, CitizenDraft } from "@/services/drafts"
+import { toast } from "sonner"
+import { Cloud, CloudOff, RefreshCw, Trash2 } from "lucide-react"
 
 export default function VolunteerPage() {
     const [user, setUser] = useState<string | null>(null)
     const [loginName, setLoginName] = useState("")
     const [beneficiaries, setBeneficiaries] = useState<any[]>([])
+    const [drafts, setDrafts] = useState<CitizenDraft[]>([])
     const [loading, setLoading] = useState(false)
+    const [syncing, setSyncing] = useState(false)
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault()
         if (loginName.trim()) {
             setUser(loginName)
             fetchBeneficiaries(loginName)
+            loadDrafts()
         }
+    }
+
+    const loadDrafts = () => {
+        setDrafts(DraftService.getAllDrafts())
+    }
+
+    const handleSync = async () => {
+        if (drafts.length === 0) return
+        setSyncing(true)
+        try {
+            const { createProfile } = await import("@/services/profile")
+            let successCount = 0
+
+            for (const draft of drafts) {
+                const newUserId = `citizen-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+                await createProfile(newUserId, {
+                    userId: newUserId,
+                    managedBy: user || "unknown",
+                    profileData: {
+                        name: draft.name,
+                        age: draft.age,
+                        education: "Not Specified",
+                        income: draft.income,
+                        caste: "Not Specified",
+                        state: draft.state,
+                        occupationTags: [draft.occupation]
+                    },
+                    documentStatus: {
+                        aadhaar: "pending",
+                        incomeCert: "pending"
+                    }
+                })
+                DraftService.deleteDraft(draft.id)
+                successCount++
+            }
+
+            toast.success(`Successfully synced ${successCount} profiles!`)
+            loadDrafts()
+            if (user) fetchBeneficiaries(user)
+        } catch (e) {
+            console.error(syncing, e)
+            toast.error("Sync failed. Check connection.")
+        }
+        setSyncing(false)
+    }
+
+    const handleDeleteDraft = (id: string) => {
+        DraftService.deleteDraft(id)
+        loadDrafts()
     }
 
     const fetchBeneficiaries = async (volunteerId: string) => {
@@ -85,13 +140,20 @@ export default function VolunteerPage() {
         <DashboardLayout role="volunteer">
             <div className="space-y-10">
                 {/* Metrics Row */}
-                <div className="grid gap-6 md:grid-cols-3">
+                <div className="grid gap-6 md:grid-cols-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <MetricCard
                         icon={<Users className="h-5 w-5" />}
                         label="Active Beneficiaries"
                         value={beneficiaries.length}
                         trend="+2 today"
                         color="blue"
+                    />
+                    <MetricCard
+                        icon={<CloudOff className="h-5 w-5" />}
+                        label="Offline Drafts"
+                        value={drafts.length}
+                        trend="Waiting for sync"
+                        color="amber"
                     />
                     <MetricCard
                         icon={<BadgeCheck className="h-5 w-5" />}
@@ -126,6 +188,40 @@ export default function VolunteerPage() {
                         </Button>
                     </div>
                 </div>
+
+                {/* Drafts Section (Conditional) */}
+                {drafts.length > 0 && (
+                    <div className="space-y-6 animate-in slide-in-from-top-4 duration-500">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-xl font-bold text-[#0F172A] flex items-center gap-2">
+                                <CloudOff className="h-5 w-5 text-amber-500" /> Offline Registration Queue
+                            </h3>
+                            <Button
+                                onClick={handleSync}
+                                disabled={syncing}
+                                className="bg-[#0F172A] hover:bg-slate-800 text-xs font-black uppercase tracking-widest"
+                            >
+                                {syncing ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : <Cloud className="h-4 w-4 mr-2" />}
+                                SYNC ALL TO CLOUD
+                            </Button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {drafts.map(draft => (
+                                <Card key={draft.id} className="border-amber-200 bg-amber-50/30">
+                                    <CardContent className="p-4 flex items-center justify-between">
+                                        <div>
+                                            <p className="font-bold text-slate-900">{draft.name}</p>
+                                            <p className="text-xs text-slate-500">{draft.state} • {new Date(draft.createdAt).toLocaleTimeString()}</p>
+                                        </div>
+                                        <Button variant="ghost" size="sm" onClick={() => handleDeleteDraft(draft.id)} className="text-slate-400 hover:text-red-500">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* List View */}
                 {loading ? (
@@ -177,6 +273,14 @@ export default function VolunteerPage() {
                         )}
                     </div>
                 )}
+                {/* Mobile FAB - Shifted up to avoid SahayakChat overlap */}
+                <div className="fixed bottom-28 right-8 md:hidden z-50">
+                    <Button asChild className="h-16 w-16 rounded-full bg-blue-600 hover:bg-blue-700 shadow-2xl shadow-blue-400 p-0 flex items-center justify-center hover-lift">
+                        <Link href="/check">
+                            <Plus className="h-8 w-8 text-white" />
+                        </Link>
+                    </Button>
+                </div>
             </div>
         </DashboardLayout>
     )

@@ -42,7 +42,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 animate-in fade-in slide-in-from-bottom-16 duration-1000 delay-300">
             <Button
               size="lg"
-              className="h-16 px-12 text-lg font-black bg-white text-blue-600 hover:bg-slate-50 shadow-[0_0_40px_rgba(59,130,246,0.2)] transition-all transform hover:scale-105"
+              className="h-16 px-12 text-lg font-black bg-white text-blue-600 hover:bg-slate-50 shadow-[0_0_40px_rgba(59,130,246,0.2)] transition-all transform hover:scale-105 hover-lift"
               asChild
             >
               <Link href="/check">
@@ -53,7 +53,7 @@ export default function Home() {
             <Button
               variant="outline"
               size="lg"
-              className="h-16 px-12 text-lg font-black border-2 border-white/20 text-white hover:bg-white/10 glass-card transition-all"
+              className="h-16 px-12 text-lg font-black border-2 border-white/20 text-white hover:bg-white/10 glass-card transition-all hover-lift"
               asChild
             >
               <Link href="/schemes">
@@ -69,7 +69,7 @@ export default function Home() {
       </section>
 
       {/* Role Switcher Section */}
-      <section className="py-32 px-4">
+      <section className="py-32 pb-48 px-4">
         <div className="container mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             <RoleCard
@@ -145,10 +145,10 @@ function RoleCard({ icon, title, description, cta, href, color }: { icon: React.
 
   return (
     <div className={cn(
-      "p-10 bg-white border border-slate-100 rounded-[2rem] transition-all duration-500 group relative overflow-hidden",
+      "p-10 bg-white border border-slate-100 rounded-[2rem] transition-all duration-500 group relative overflow-hidden hover-lift",
       glowClasses[color]
     )}>
-      <div className="mb-8 p-4 bg-slate-50 w-fit rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:bg-white">
+      <div className="mb-8 p-4 bg-slate-50 w-fit rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:bg-white group-hover:shadow-lg">
         {icon}
       </div>
       <h3 className="text-2xl font-black text-slate-900 mb-4">{title}</h3>
