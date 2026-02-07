@@ -21,6 +21,9 @@ export interface RegionalWelfareBridge {
 }
 
 export async function getGlobalImpactStats(): Promise<GlobalImpactStats> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) {
+        return { citizensAssisted: 0, benefitsEnabled: 0, estimatedValue: "₹0L", trustScore: "0%" };
+    }
     try {
         const profilesSnap = await getDocs(collection(db, "citizenProfiles"));
         const profilesCount = profilesSnap.size;
@@ -55,6 +58,7 @@ export async function getGlobalImpactStats(): Promise<GlobalImpactStats> {
 }
 
 export async function getRegionalDemand(): Promise<RegionalDemand[]> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return [];
     try {
         const logsRef = collection(db, "citizenAssessmentLog");
         const querySnapshot = await getDocs(logsRef);
@@ -81,6 +85,7 @@ export async function getRegionalDemand(): Promise<RegionalDemand[]> {
 }
 
 export async function getRegionalWelfareBridge(): Promise<RegionalWelfareBridge[]> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return [];
     try {
         // 1. Get Demand from Assessment Logs
         const logsRef = collection(db, "citizenAssessmentLog");
@@ -150,6 +155,7 @@ export interface EligibilityGraphData {
 }
 
 export async function getEligibilityGraphData(): Promise<EligibilityGraphData> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return { nodes: [], links: [] };
     try {
         const snapshot = await getDocs(collection(db, "citizenAssessmentLog"));
         const schemesSnap = await getDocs(collection(db, "schemes"));
@@ -235,6 +241,7 @@ export interface DemographicAnalytics {
 }
 
 export async function getDemographicAnalytics(): Promise<DemographicAnalytics> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return { ageDistribution: [], incomeTiers: [] };
     try {
         const snapshot = await getDocs(collection(db, "citizenProfiles"));
         const profiles = snapshot.docs.map(doc => doc.data().profileData);
@@ -291,6 +298,7 @@ export async function getDemographicAnalytics(): Promise<DemographicAnalytics> {
 }
 
 export async function getApplicationTrends(): Promise<MonthlyTrend[]> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return [];
     try {
         // In a real app, we would query by timestamp range.
         // For hackathon, we fetch all logs and aggregate in memory.
