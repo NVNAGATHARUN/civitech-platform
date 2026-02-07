@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { signIn, signUp, resetPassword } from "@/services/auth"
 import { auth, db } from "@/lib/firebase"
 import { toast } from "sonner"
-import { Lock, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Lock, AlertCircle, CheckCircle2, Sparkles } from "lucide-react"
 
 export function AuthForm() {
     const [isLogin, setIsLogin] = useState(true)
@@ -24,8 +24,18 @@ export function AuthForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        if (!db || !db.app || !db.app.options || !db.app.options.apiKey) {
-            toast.error("Welfare Gateway is currently offline. Please try again in 5 minutes.")
+        const isFirebaseReady = db && db.app && db.app.options && db.app.options.apiKey;
+
+        if (!isFirebaseReady) {
+            toast.info("Firebase uninitialized. Entering Demo Mode.", {
+                description: "Experience the platform with localized data storage.",
+                duration: 5000
+            })
+            setLoading(true)
+            setTimeout(() => {
+                setLoading(false)
+                router.push("/profile")
+            }, 1000)
             return;
         }
 
@@ -154,6 +164,28 @@ export function AuthForm() {
                             "CREATE ACCOUNT"
                         )}
                     </Button>
+
+                    {!(db && db.app && db.app.options && db.app.options.apiKey) && (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full h-14 rounded-2xl border-2 border-emerald-100 text-emerald-600 font-black hover:bg-emerald-50 hover:border-emerald-200 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-50"
+                            onClick={() => {
+                                toast.info("Entering Mock Demo Mode", {
+                                    description: "Credentials are not required. Data will be saved locally.",
+                                    duration: 3000
+                                })
+                                setLoading(true)
+                                setTimeout(() => {
+                                    setLoading(false)
+                                    router.push("/profile")
+                                }, 800)
+                            }}
+                        >
+                            <Sparkles className="h-5 w-5" />
+                            CONTINUE IN DEMO MODE
+                        </Button>
+                    )}
 
                     <div className="w-full h-px bg-slate-100 relative">
                         <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 text-[10px] font-black text-slate-300 uppercase tracking-widest">OR</span>

@@ -27,24 +27,53 @@ export default function SchemesPage() {
     const [loading, setLoading] = useState(true)
     const [hasProfile, setHasProfile] = useState(false)
     const [userRole, setUserRole] = useState<string | null>(null)
+    const [user, setUser] = useState<any>(null)
 
     const [searchTerm, setSearchTerm] = useState("")
 
     useEffect(() => {
         if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
+            console.warn("Firebase uninitialized, using demo user for SchemesPage");
+            const demoUser = { uid: "demo-user-123", email: "demo@civitech.in" };
+            setUser(demoUser);
+            setUserRole("citizen");
+
+            // Fetch local profile and matching schemes
+            const localProfile = JSON.parse(localStorage.getItem(`citizenProfile_${demoUser.uid}`) || "null");
+            if (localProfile) {
+                setHasProfile(true);
+                getSchemesForProfile(localProfile).then(results => {
+                    setMatches(results.map(r => ({
+                        ...r.scheme,
+                        matchReason: r.matchReason,
+                        isEligible: true
+                    })));
+                });
+            } else {
+                setHasProfile(false);
+            }
+
+            getAllSchemes().then(setAllSchemes);
             setLoading(false);
             return;
         }
 
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             setLoading(true)
             try {
                 const all = await getAllSchemes()
                 setAllSchemes(all)
 
-                if (user && db && db.app && db.app.options && db.app.options.apiKey) {
+                if (currentUser) { // Check if currentUser exists
+                    setUser(currentUser) // Set the user state
+                    // Assuming getUserRole is a function that needs to be defined or imported
+                    // For now, keeping the existing role determination logic.
+                    // const userRole = await getUserRole(currentUser.uid) // This line was requested but getUserRole is not defined.
+                    // If this is meant to replace the email-based role logic,
+                    // further instructions or definition of getUserRole are needed.
+
                     // Check if volunteer
-                    if (user.email?.includes("volunteer")) {
+                    if (currentUser.email?.includes("volunteer")) {
                         setUserRole("volunteer")
                     } else if (user.email?.includes("admin")) {
                         setUserRole("admin")

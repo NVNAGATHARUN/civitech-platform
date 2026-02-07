@@ -13,11 +13,13 @@ const firebaseConfig = {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Debug: Verify config is loaded
+// Status: Verify config is loaded
 if (typeof window !== "undefined") {
-    console.log("Firebase Project ID:", firebaseConfig.projectId);
     if (!firebaseConfig.apiKey) {
-        console.error("FIREBASE ERROR: API Key is missing! Check your .env.local file.");
+        console.warn("Civitech: Running in Mock Demo Mode (No Firebase API Key detected).");
+        console.info("To enable production Firebase features, add keys to your .env.local file.");
+    } else {
+        console.log("Civitech: Firebase initialized with Project ID:", firebaseConfig.projectId);
     }
 }
 

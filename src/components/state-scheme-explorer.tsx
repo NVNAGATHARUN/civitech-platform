@@ -224,7 +224,6 @@ export function StateSchemeExplorer() {
                                                             {t.explorer.details} <ArrowRight className="ml-1 h-3 w-3" />
                                                         </Link>
                                                     </Button>
-                                                    streams,
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -250,7 +249,6 @@ export function StateSchemeExplorer() {
                                 <Button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 h-12 font-black text-[11px] uppercase tracking-[0.2em] rounded-xl shadow-lg shadow-blue-500/20">
                                     {t.explorer.viewFullReport} <ExternalLink className="ml-2 h-3 w-3" />
                                 </Button>
-                                streams,
                             </div>
                         </>
                     )}

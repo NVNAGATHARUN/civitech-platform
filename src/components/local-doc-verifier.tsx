@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { CheckCircle2, AlertCircle, FileText, Lock, FileDigit } from "lucide-react"
-import { auth } from "@/lib/firebase"
+import { auth, db } from "@/lib/firebase"
 import { Scheme, EligibilityToken } from "@/lib/types"
 import { useLanguage } from "@/lib/LanguageContext"
+import { useUserRole } from "@/lib/useUserRole"
 
 // PDF.js worker setup
 // PDF.js worker setup removed from top-level to prevent SSR build errors
@@ -20,6 +21,7 @@ interface LocalDocVerifierProps {
 }
 
 export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierProps) {
+    const { user } = useUserRole()
     const { t } = useLanguage()
     const [status, setStatus] = useState<'idle' | 'processing' | 'success' | 'failure'>('idle')
     const [progress, setProgress] = useState(0)
@@ -161,8 +163,6 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
 
                 // Create and store Token
                 const tokenString = `VERIFIED-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-                const user = auth.currentUser;
-
                 const token: EligibilityToken = {
                     tokenString,
                     userId: user?.uid || "anonymous",
@@ -171,16 +171,22 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
                     expiresAt: new Date(Date.now() + 86400000) as any
                 }
 
-                // Persist to Firestore
+                // Persist to Firestore / LocalStorage
                 if (user) {
-                    import("@/lib/firebase").then(({ db }) => {
+                    const isFirebaseReady = db && db.app && db.app.options && db.app.options.apiKey;
+                    if (isFirebaseReady) {
                         import("firebase/firestore").then(({ collection, addDoc }) => {
                             addDoc(collection(db, "eligibilityTokens"), {
                                 ...token,
                                 createdAt: new Date()
                             });
                         });
-                    });
+                    } else {
+                        console.warn("Firebase uninitialized, saving token to localStorage (demo mode)");
+                        const localTokens = JSON.parse(localStorage.getItem(`eligibilityTokens_${user.uid}`) || "[]");
+                        localTokens.push(token);
+                        localStorage.setItem(`eligibilityTokens_${user.uid}`, JSON.stringify(localTokens));
+                    }
 
                     import("@/services/schemeStatus").then(({ updateSchemeStatus }) => {
                         updateSchemeStatus(user.uid, scheme.id, 'eligible');

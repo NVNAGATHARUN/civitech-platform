@@ -3,7 +3,14 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { EligibilityToken } from "@/lib/types";
 
 export async function getUserTokens(userId: string): Promise<EligibilityToken[]> {
-    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return [];
+    const isFirebaseReady = db && db.app && db.app.options && db.app.options.apiKey;
+
+    if (!isFirebaseReady) {
+        console.warn("Firebase uninitialized, fetching tokens from localStorage (demo mode)");
+        const localData = localStorage.getItem(`eligibilityTokens_${userId}`);
+        return localData ? JSON.parse(localData) : [];
+    }
+
     try {
         const q = query(
             collection(db, "eligibilityTokens"),

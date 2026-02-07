@@ -36,6 +36,13 @@ export function ProfileForm() {
 
     useEffect(() => {
         if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
+            console.warn("Firebase uninitialized, using demo user for ProfileForm");
+            setUser({ uid: "demo-user-123", email: "demo@civitech.in" });
+            const localProfile = JSON.parse(localStorage.getItem("citizenProfile_demo-user-123") || "null");
+            if (localProfile) {
+                setFormData(localProfile.profileData);
+                setTagsInput(localProfile.profileData.occupationTags.join(", "));
+            }
             setLoading(false);
             return;
         }
@@ -74,10 +81,8 @@ export function ProfileForm() {
 
     const saveProfile = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
-            alert("Firebase not initialized. Action disabled.");
-            return;
-        }
+        const isFirebaseReady = auth && auth.app && auth.app.options && auth.app.options.apiKey;
+
         if (!user) return
         setLoading(true)
         try {
@@ -86,8 +91,16 @@ export function ProfileForm() {
                 managedBy: 'self',
                 profileData: formData,
                 documentStatus: {}, // Init empty
-                createdAt: new Date() as any // Firebase Timestamp adjustment needed in real app, generic Date works for now
+                createdAt: new Date() as any
             }
+
+            if (!isFirebaseReady) {
+                console.warn("Firebase uninitialized, saving profile to localStorage (demo mode)");
+                localStorage.setItem(`citizenProfile_${user.uid}`, JSON.stringify(profile));
+                router.push("/schemes");
+                return;
+            }
+
             await setDoc(doc(db, "citizenProfiles", user.uid), profile, { merge: true })
             router.push("/schemes")
         } catch (error) {

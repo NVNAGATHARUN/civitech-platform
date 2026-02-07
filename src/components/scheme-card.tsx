@@ -14,14 +14,16 @@ import {
     FileText
 } from "lucide-react"
 import { useState, useEffect } from "react"
-import { auth } from "@/lib/firebase"
+import { auth, db } from "@/lib/firebase"
 import { updateSchemeStatus } from "@/services/schemeStatus"
 import { cn } from "@/lib/utils"
+import { useUserRole } from "@/lib/useUserRole"
 
 import { toast } from "sonner"
 import { useLanguage } from "@/lib/LanguageContext"
 
 export function SchemeCard({ scheme, isRecommended = false }: { scheme: Scheme, isRecommended?: boolean }) {
+    const { user } = useUserRole()
     const { language, t } = useLanguage()
     const [loading, setLoading] = useState<'planned' | 'applied' | null>(null)
     const [status, setStatus] = useState<SchemeStatus | null>(null)
@@ -59,7 +61,8 @@ export function SchemeCard({ scheme, isRecommended = false }: { scheme: Scheme, 
     }, [])
 
     const handleAction = async (action: 'planned' | 'applied') => {
-        const user = auth.currentUser
+        const isFirebaseReady = db && db.app && db.app.options && db.app.options.apiKey;
+
         if (!user) {
             alert("Please login to shortlist or apply for schemes.")
             return

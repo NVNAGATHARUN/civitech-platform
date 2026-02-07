@@ -72,7 +72,7 @@ export default function ImpactMapPage() {
                 <div className="grid gap-6 md:grid-cols-3">
                     <ImpactStatsCard
                         label="Citizens Assisted"
-                        value={loading ? "..." : stats?.citizensAssisted.toString() || "0"}
+                        value={loading ? "..." : (stats?.citizensAssisted?.toString() || "0")}
                         icon={<Users className="h-5 w-5" />}
                         color="blue"
                         sub="Verified on platform"

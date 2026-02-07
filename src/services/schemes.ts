@@ -2,6 +2,7 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { Scheme, CitizenProfile } from "@/lib/types";
 import { getUserBeneficiaries } from "./beneficiaries";
+import schemes from "@/lib/schemes.json";
 
 export interface MatchedScheme extends Scheme {
     matchReason?: string;
@@ -22,18 +23,22 @@ export interface FuturePrediction {
 }
 
 export async function getAllSchemes(): Promise<Scheme[]> {
-    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return [];
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) {
+        console.warn("Firebase uninitialized, using local schemes.json fallback");
+        return schemes as Scheme[];
+    }
     try {
         const snapshot = await getDocs(collection(db, "schemes"));
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Scheme));
+        const fbSchemes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Scheme));
+        return fbSchemes.length > 0 ? fbSchemes : schemes as Scheme[];
     } catch (error) {
-        console.error("Error fetching schemes:", error);
-        return [];
+        console.error("Error fetching schemes, falling back to local:", error);
+        return schemes as Scheme[];
     }
 }
 
 export async function getSchemesForProfile(profile: CitizenProfile): Promise<SchemeWithReason[]> {
-    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return [];
+    // We allow this to run even if Firebase is uninitialized by using the fallback in getAllSchemes
     try {
         if (!profile || !profile.profileData) return [];
         // 1. Fetch all schemes
@@ -106,7 +111,7 @@ export async function getSchemesForProfile(profile: CitizenProfile): Promise<Sch
 }
 
 export async function getFuturePredictions(profile: CitizenProfile): Promise<FuturePrediction[]> {
-    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return [];
+    // We allow this to run even if Firebase is uninitialized by using the fallback in getAllSchemes
     try {
         if (!profile || !profile.profileData) return [];
         const allSchemes = await getAllSchemes();

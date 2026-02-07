@@ -34,10 +34,6 @@ export default function ProfilePage() {
     const [newBen, setNewBen] = useState({ name: "", relation: "", age: "" })
 
     const handleAddBeneficiary = async () => {
-        if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
-            alert("Firebase not initialized. Action disabled.");
-            return;
-        }
         if (!user || !newBen.name || !newBen.relation || !newBen.age) return
 
         try {
@@ -62,10 +58,6 @@ export default function ProfilePage() {
     }
 
     const handleDeleteBeneficiary = async (id: string) => {
-        if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
-            alert("Firebase not initialized. Action disabled.");
-            return;
-        }
         if (!confirm("Are you sure?")) return
         try {
             await deleteBeneficiary(id)
@@ -79,6 +71,24 @@ export default function ProfilePage() {
 
     useEffect(() => {
         if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
+            console.warn("Firebase uninitialized, using demo user for ProfilePage");
+            const demoUser = { uid: "demo-user-123", email: "demo@civitech.in" };
+            setUser(demoUser);
+
+            // Fetch local data
+            getUserSchemeStatuses(demoUser.uid).then(statuses => {
+                getAllSchemes().then(schemes => {
+                    const combined = statuses.map(status => ({
+                        ...status,
+                        scheme: schemes.find(s => s.id === status.schemeId)
+                    }));
+                    setTrackedSchemes(combined);
+                });
+            });
+
+            getProfile(demoUser.uid).then(profile => setCitizenProfile(profile));
+            getUserBeneficiaries(demoUser.uid).then(benList => setBeneficiaries(benList));
+
             setLoading(false);
             return;
         }
