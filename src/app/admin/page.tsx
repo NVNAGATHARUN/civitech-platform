@@ -65,6 +65,11 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+        if (!db || !db.app || !db.app.options || !db.app.options.apiKey) {
+            setLoading(false);
+            return;
+        }
+
         const fetchStats = async () => {
             try {
                 const coll = collection(db, "citizenProfiles");

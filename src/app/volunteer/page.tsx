@@ -95,6 +95,10 @@ export default function VolunteerPage() {
     }
 
     const fetchBeneficiaries = async (volunteerId: string) => {
+        if (!db || !db.app || !db.app.options || !db.app.options.apiKey) {
+            setLoading(false);
+            return;
+        }
         setLoading(true)
         try {
             const { getProfilesByVolunteer } = await import("@/services/profile")

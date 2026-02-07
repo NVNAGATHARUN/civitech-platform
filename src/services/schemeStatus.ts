@@ -20,6 +20,7 @@ export async function updateSchemeStatus(
     status: SchemeStatus,
     dropOffReason?: string
 ): Promise<{ success: boolean; error?: string }> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return { success: false, error: "Firebase not initialized" };
     try {
         const statusId = `${userId}_${schemeId}`;
         const docRef = doc(db, "schemeStatus", statusId);
@@ -63,6 +64,7 @@ export async function getSchemeStatus(
     userId: string,
     schemeId: string
 ): Promise<CitizenSchemeStatus | null> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return null;
     try {
         const statusId = `${userId}_${schemeId}`;
         const docRef = doc(db, "schemeStatus", statusId);
@@ -79,6 +81,7 @@ export async function getSchemeStatus(
 }
 
 export async function getUserSchemeStatuses(userId: string): Promise<CitizenSchemeStatus[]> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return [];
     try {
         const q = query(
             collection(db, "schemeStatus"),
@@ -100,6 +103,13 @@ export async function getUserSchemeStatuses(userId: string): Promise<CitizenSche
 }
 
 export async function getSchemeAnalytics() {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) {
+        return {
+            totalRecommendations: 0,
+            statusCounts: { checked: 0, eligible: 0, planned: 0, applied: 0, benefit_received: 0 },
+            topReasons: []
+        };
+    }
     try {
         const querySnapshot = await getDocs(collection(db, "schemeStatus"));
         const statuses = querySnapshot.docs.map(doc => doc.data() as CitizenSchemeStatus);

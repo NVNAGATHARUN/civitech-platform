@@ -108,11 +108,13 @@ export default function CitizenCheckPage() {
             }
 
             // Optional: Store in Firestore for tracking (demo purpose)
-            await addDoc(collection(db, "citizenAssessmentLog"), {
-                ...profile,
-                createdAt: new Date(),
-                userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : "unknown"
-            });
+            if (db && db.app && db.app.options && db.app.options.apiKey) {
+                await addDoc(collection(db, "citizenAssessmentLog"), {
+                    ...profile,
+                    createdAt: new Date(),
+                    userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : "unknown"
+                });
+            }
 
             // STEP 2: Call getSchemesForProfile and getFuturePredictions
             const results = await getSchemesForProfile(profile)

@@ -3,6 +3,7 @@ import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } fro
 import { CitizenProfile } from "@/lib/types";
 
 export async function getProfile(userId: string): Promise<CitizenProfile | null> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return null;
     try {
         const docRef = doc(db, "citizenProfiles", userId);
         const docSnap = await getDoc(docRef);
@@ -18,6 +19,7 @@ export async function getProfile(userId: string): Promise<CitizenProfile | null>
 }
 
 export async function updateProfile(userId: string, data: Partial<CitizenProfile>): Promise<{ success: boolean; error?: string }> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return { success: false, error: "Firebase not initialized" };
     try {
         const docRef = doc(db, "citizenProfiles", userId);
         await setDoc(docRef, data, { merge: true });
@@ -29,6 +31,7 @@ export async function updateProfile(userId: string, data: Partial<CitizenProfile
 }
 
 export async function createProfile(userId: string, profile: CitizenProfile): Promise<{ success: boolean; error?: string }> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return { success: false, error: "Firebase not initialized" };
     try {
         const docRef = doc(db, "citizenProfiles", userId);
         await setDoc(docRef, {
@@ -44,6 +47,7 @@ export async function createProfile(userId: string, profile: CitizenProfile): Pr
 }
 
 export async function deleteProfile(userId: string): Promise<{ success: boolean; error?: string }> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return { success: false, error: "Firebase not initialized" };
     try {
         const docRef = doc(db, "citizenProfiles", userId);
         await deleteDoc(docRef);
@@ -55,6 +59,7 @@ export async function deleteProfile(userId: string): Promise<{ success: boolean;
 }
 
 export async function getProfilesByVolunteer(volunteerId: string): Promise<CitizenProfile[]> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return [];
     try {
         const q = query(
             collection(db, "citizenProfiles"),
@@ -73,6 +78,7 @@ export async function getProfilesByVolunteer(volunteerId: string): Promise<Citiz
 }
 
 export async function getAllProfiles(): Promise<CitizenProfile[]> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return [];
     try {
         const querySnapshot = await getDocs(collection(db, "citizenProfiles"));
         return querySnapshot.docs.map(doc => ({

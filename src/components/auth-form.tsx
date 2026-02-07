@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { signIn, signUp, resetPassword } from "@/services/auth"
+import { auth, db } from "@/lib/firebase"
 import { toast } from "sonner"
 import { Lock, AlertCircle, CheckCircle2 } from "lucide-react"
 
@@ -22,6 +23,12 @@ export function AuthForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (!db || !db.app || !db.app.options || !db.app.options.apiKey) {
+            toast.error("Welfare Gateway is currently offline. Please try again in 5 minutes.")
+            return;
+        }
+
         setError("")
         setSuccess("")
         setLoading(true)

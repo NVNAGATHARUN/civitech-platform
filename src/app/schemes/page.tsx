@@ -31,13 +31,18 @@ export default function SchemesPage() {
     const [searchTerm, setSearchTerm] = useState("")
 
     useEffect(() => {
+        if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
+            setLoading(false);
+            return;
+        }
+
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             setLoading(true)
             try {
                 const all = await getAllSchemes()
                 setAllSchemes(all)
 
-                if (user) {
+                if (user && db && db.app && db.app.options && db.app.options.apiKey) {
                     // Check if volunteer
                     if (user.email?.includes("volunteer")) {
                         setUserRole("volunteer")

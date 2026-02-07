@@ -70,6 +70,11 @@ export default function ProfilePage() {
     // ... rest of useEffect remains the same
 
     useEffect(() => {
+        if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
+            setLoading(false);
+            return;
+        }
+
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
                 setUser(currentUser)

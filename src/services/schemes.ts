@@ -22,6 +22,7 @@ export interface FuturePrediction {
 }
 
 export async function getAllSchemes(): Promise<Scheme[]> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return [];
     try {
         const snapshot = await getDocs(collection(db, "schemes"));
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Scheme));
@@ -32,6 +33,7 @@ export async function getAllSchemes(): Promise<Scheme[]> {
 }
 
 export async function getSchemesForProfile(profile: CitizenProfile): Promise<SchemeWithReason[]> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return [];
     try {
         if (!profile || !profile.profileData) return [];
         // 1. Fetch all schemes
@@ -104,6 +106,7 @@ export async function getSchemesForProfile(profile: CitizenProfile): Promise<Sch
 }
 
 export async function getFuturePredictions(profile: CitizenProfile): Promise<FuturePrediction[]> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return [];
     try {
         if (!profile || !profile.profileData) return [];
         const allSchemes = await getAllSchemes();

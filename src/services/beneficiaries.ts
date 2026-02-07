@@ -14,6 +14,7 @@ import { Beneficiary } from "@/lib/types";
 const COLLECTION_NAME = "beneficiaries";
 
 export async function addBeneficiary(userId: string, data: Partial<Beneficiary>): Promise<string> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) throw new Error("Firebase not initialized");
     try {
         const docRef = await addDoc(collection(db, COLLECTION_NAME), {
             ...data,
@@ -29,6 +30,7 @@ export async function addBeneficiary(userId: string, data: Partial<Beneficiary>)
 }
 
 export async function getUserBeneficiaries(userId: string): Promise<Beneficiary[]> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) return [];
     try {
         const q = query(collection(db, COLLECTION_NAME), where("primaryUserId", "==", userId));
         const snapshot = await getDocs(q);
@@ -43,6 +45,7 @@ export async function getUserBeneficiaries(userId: string): Promise<Beneficiary[
 }
 
 export async function deleteBeneficiary(id: string): Promise<void> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) throw new Error("Firebase not initialized");
     try {
         await deleteDoc(doc(db, COLLECTION_NAME, id));
     } catch (error) {
