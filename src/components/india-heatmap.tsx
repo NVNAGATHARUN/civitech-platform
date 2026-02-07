@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react"
 import * as d3 from "d3"
-import { RegionalDemand } from "@/services/analytics"
+import { getRegionalDemand, RegionalDemand } from "@/services/data-service"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"

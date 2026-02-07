@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Share2, BarChart3, PieChart as PieChartIcon, Loader2, Info } from "lucide-react"
-import { getEligibilityGraphData, EligibilityGraphData, GraphNode, GraphEdge } from "@/services/analytics"
+import { getEligibilityGraphData, EligibilityGraphData, GraphNode, GraphEdge } from "@/services/data-service"
 import { cn } from "@/lib/utils"
 
 interface SimulationNode extends d3.SimulationNodeDatum, GraphNode { }

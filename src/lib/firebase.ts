@@ -22,18 +22,21 @@ if (typeof window !== "undefined") {
 }
 
 // Initialize Firebase safely
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const canInitialize = !!firebaseConfig.apiKey;
 
-const auth = getAuth(app);
+const app = canInitialize
+    ? (!getApps().length ? initializeApp(firebaseConfig) : getApp())
+    : ({} as any);
 
-// Use initializeFirestore with experimentalForceLongPolling to bypass potential network blocks
-const db = initializeFirestore(app, {
-    experimentalForceLongPolling: true,
-});
+const auth = canInitialize ? getAuth(app) : ({} as any);
+
+const db = canInitialize
+    ? initializeFirestore(app, { experimentalForceLongPolling: true })
+    : ({} as any);
 
 // Analytics setup (client-side only)
 let analytics: Analytics | undefined;
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && canInitialize) {
     isSupported().then((yes) => yes && (analytics = getAnalytics(app)));
 }
 

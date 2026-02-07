@@ -27,7 +27,7 @@ import { RoleGuard } from "@/components/role-guard"
 import { IndiaHeatmap } from "@/components/india-heatmap"
 import { EligibilityGraph } from "@/components/eligibility-graph"
 import { WelfareBridge } from "@/components/welfare-bridge"
-import { RegionalWelfareBridge } from "@/services/analytics"
+import { RegionalWelfareBridge } from "@/services/data-service"
 import { useLanguage } from "@/lib/LanguageContext"
 
 import { seedRobustSchemes } from "@/lib/seed-robust"
@@ -73,7 +73,7 @@ export default function AdminDashboard() {
                 const { getSchemeAnalytics } = await import("@/services/schemeStatus");
                 const analytics = await getSchemeAnalytics();
 
-                const { getRegionalDemand, getRegionalWelfareBridge } = await import("@/services/analytics");
+                const { getRegionalDemand, getRegionalWelfareBridge } = await import("@/services/data-service");
                 const regional = await getRegionalDemand();
                 const bridge = await getRegionalWelfareBridge();
                 setRegionalDemand(regional);

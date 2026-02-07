@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Globe, Trophy, Users, Heart, Star, Sparkles, MapPin, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { getGlobalImpactStats, GlobalImpactStats } from "@/services/analytics"
+import { getGlobalImpactStats, GlobalImpactStats } from "@/services/data-service"
 
 import { StateSchemeExplorer } from "@/components/state-scheme-explorer"
 
@@ -28,7 +28,7 @@ export default function ImpactMapPage() {
             setLoading(true)
             const [data, regionData] = await Promise.all([
                 getGlobalImpactStats(),
-                import("@/services/analytics").then(m => m.getRegionalDemand())
+                import("@/services/data-service").then(m => m.getRegionalDemand())
             ])
             setStats(data)
             setRegionalDemand(regionData)
