@@ -35,7 +35,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
             { name: t.sidebar.overview, href: "/admin", icon: LayoutDashboard },
             { name: t.sidebar.impactMap, href: "/admin/impact", icon: Globe },
             { name: t.sidebar.schemes, href: "/admin/schemes", icon: FileText },
-            { name: t.sidebar.analytics, href: "/admin/analytics", icon: BarChart3 },
+            { name: t.sidebar.analytics, href: "/admin/data-insights", icon: BarChart3 },
             { name: t.sidebar.citizens, href: "/admin/citizens", icon: Users },
             { name: t.sidebar.settings, href: "/admin/settings", icon: Settings },
         ]

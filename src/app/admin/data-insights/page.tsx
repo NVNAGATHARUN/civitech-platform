@@ -1,33 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import dynamic from "next/dynamic"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { RoleGuard } from "@/components/role-guard"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell,
-    LineChart,
-    Line,
-    AreaChart,
-    Area
-} from "recharts"
 import {
     TrendingUp,
     Users,
     Map,
     Activity,
-    PieChart as PieIcon,
-    ArrowUpRight,
-    ArrowDownRight,
     Search,
     Calendar,
     Download
@@ -35,6 +17,20 @@ import {
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/lib/LanguageContext"
+
+// Dynamically import Recharts with SSR disabled
+const ResponsiveContainer = dynamic(() => import("recharts").then(re => re.ResponsiveContainer), { ssr: false })
+const AreaChart = dynamic(() => import("recharts").then(re => re.AreaChart), { ssr: false })
+const Area = dynamic(() => import("recharts").then(re => re.Area), { ssr: false })
+const XAxis = dynamic(() => import("recharts").then(re => re.XAxis), { ssr: false })
+const YAxis = dynamic(() => import("recharts").then(re => re.YAxis), { ssr: false })
+const CartesianGrid = dynamic(() => import("recharts").then(re => re.CartesianGrid), { ssr: false })
+const Tooltip = dynamic(() => import("recharts").then(re => re.Tooltip), { ssr: false })
+const PieChart = dynamic(() => import("recharts").then(re => re.PieChart), { ssr: false })
+const Pie = dynamic(() => import("recharts").then(re => re.Pie), { ssr: false })
+const Cell = dynamic(() => import("recharts").then(re => re.Cell), { ssr: false })
+const BarChart = dynamic(() => import("recharts").then(re => re.BarChart), { ssr: false })
+const Bar = dynamic(() => import("recharts").then(re => re.Bar), { ssr: false })
 
 const DEMO_DATA = {
     ageDistribution: [
