@@ -95,7 +95,11 @@ export async function getUserSchemeStatuses(userId: string): Promise<CitizenSche
         } as CitizenSchemeStatus));
 
         // Sort client-side to avoid needing a Firestore Composite Index
-        return results.sort((a, b) => b.updatedAt.toMillis() - a.updatedAt.toMillis());
+        return results.sort((a, b) => {
+            const timeA = a.updatedAt?.toMillis?.() || 0;
+            const timeB = b.updatedAt?.toMillis?.() || 0;
+            return timeB - timeA;
+        });
     } catch (error) {
         console.error("Error fetching user scheme statuses:", error);
         return [];

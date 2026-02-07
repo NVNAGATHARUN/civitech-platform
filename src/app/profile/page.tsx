@@ -34,6 +34,10 @@ export default function ProfilePage() {
     const [newBen, setNewBen] = useState({ name: "", relation: "", age: "" })
 
     const handleAddBeneficiary = async () => {
+        if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
+            alert("Firebase not initialized. Action disabled.");
+            return;
+        }
         if (!user || !newBen.name || !newBen.relation || !newBen.age) return
 
         try {
@@ -58,6 +62,10 @@ export default function ProfilePage() {
     }
 
     const handleDeleteBeneficiary = async (id: string) => {
+        if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
+            alert("Firebase not initialized. Action disabled.");
+            return;
+        }
         if (!confirm("Are you sure?")) return
         try {
             await deleteBeneficiary(id)
@@ -204,7 +212,7 @@ export default function ProfilePage() {
                                                 {item.status.replace('_', ' ')}
                                             </Badge>
                                             <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                                                Updated {new Date(item.updatedAt.toDate()).toLocaleDateString()}
+                                                Updated {item.updatedAt?.toDate ? item.updatedAt.toDate().toLocaleDateString() : 'Recently'}
                                             </div>
                                         </div>
                                         <CardTitle className="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">{item.scheme?.name || 'Unknown Scheme'}</CardTitle>

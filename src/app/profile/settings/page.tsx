@@ -30,6 +30,9 @@ export default function UserSettingsPage() {
     const [user, setUser] = useState<any>(null)
 
     useEffect(() => {
+        if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
+            return;
+        }
         const unsubscribe = onAuthStateChanged(auth, (u) => {
             if (u) setUser(u)
         })

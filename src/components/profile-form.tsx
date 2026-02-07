@@ -35,6 +35,11 @@ export function ProfileForm() {
     const router = useRouter()
 
     useEffect(() => {
+        if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
+            setLoading(false);
+            return;
+        }
+
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             if (currentUser) {
                 setUser(currentUser)
@@ -69,6 +74,10 @@ export function ProfileForm() {
 
     const saveProfile = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
+            alert("Firebase not initialized. Action disabled.");
+            return;
+        }
         if (!user) return
         setLoading(true)
         try {
