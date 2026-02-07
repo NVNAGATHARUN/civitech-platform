@@ -18,6 +18,7 @@ import {
     Loader2
 } from "lucide-react"
 import { getSchemesByState } from "@/lib/schemes"
+import { useLanguage } from "@/lib/LanguageContext"
 import Link from "next/link"
 import * as d3 from "d3-geo"
 
@@ -31,6 +32,7 @@ const STATE_MAPPING: Record<string, string> = {
 }
 
 export function StateSchemeExplorer() {
+    const { t } = useLanguage()
     const [selectedState, setSelectedState] = useState<string | null>(null)
     const [hoveredState, setHoveredState] = useState<string | null>(null)
     const [geoData, setGeoData] = useState<any>(null) // GeoJSON structure is complex
@@ -97,15 +99,15 @@ export function StateSchemeExplorer() {
                     <div className="absolute top-10 left-10 z-10 space-y-2 text-left">
                         <div className="flex items-center gap-3">
                             <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-                            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Regional Discovery Engine</h3>
+                            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">{t.explorer.engine}</h3>
                         </div>
-                        <h2 className="text-2xl font-black text-[#0F172A]">Welfare Geography</h2>
+                        <h2 className="text-2xl font-black text-[#0F172A]">{t.explorer.title}</h2>
                     </div>
 
                     {isLoading ? (
                         <div className="flex flex-col items-center gap-4 animate-in fade-in duration-500">
                             <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Optimizing Map Experience...</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t.explorer.optimizing}</p>
                         </div>
                     ) : (
                         <div className="relative w-full max-w-[550px] aspect-[4/5] animate-in fade-in zoom-in-95 duration-1000">
@@ -166,7 +168,7 @@ export function StateSchemeExplorer() {
 
                     <div className="mt-auto pt-10 text-center">
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                            {selectedState ? "Click outside or state again to reset" : "Click a state to explore local welfare programs"}
+                            {selectedState ? t.explorer.resetHint : t.explorer.exploreHint}
                         </p>
                     </div>
                 </div>
@@ -183,7 +185,7 @@ export function StateSchemeExplorer() {
                                     <h4 className="text-xs font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
                                         <MapPin className="h-3 w-3" /> {selectedState}
                                     </h4>
-                                    <p className="text-lg font-black text-slate-900 tracking-tight">Regional Schemes</p>
+                                    <p className="text-lg font-black text-slate-900 tracking-tight">{t.explorer.regionalSchemes}</p>
                                 </div>
                                 <Button
                                     variant="ghost"
@@ -215,13 +217,14 @@ export function StateSchemeExplorer() {
                                                 </p>
                                                 <div className="flex items-center justify-between pt-2 border-t border-slate-50">
                                                     <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
-                                                        <Sparkles className="h-3 w-3" /> Ready to Apply
+                                                        <Sparkles className="h-3 w-3" /> {t.explorer.readyToApply}
                                                     </span>
                                                     <Button asChild variant="ghost" className="h-8 px-3 text-[10px] font-black uppercase tracking-widest text-blue-600 hover:bg-blue-50 rounded-lg">
                                                         <Link href={`/schemes?id=${scheme.id}`}>
-                                                            DETAILS <ArrowRight className="ml-1 h-3 w-3" />
+                                                            {t.explorer.details} <ArrowRight className="ml-1 h-3 w-3" />
                                                         </Link>
                                                     </Button>
+                                                    streams,
                                                 </div>
                                             </CardContent>
                                         </Card>
@@ -231,8 +234,8 @@ export function StateSchemeExplorer() {
                                         <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
                                             <Info className="h-8 w-8 text-slate-200" />
                                         </div>
-                                        <p className="text-sm font-black text-slate-400 uppercase tracking-widest leading-relaxed"> No state-specific schemes matching our current repository.</p>
-                                        <p className="text-xs text-slate-300 font-medium italic">We&apos;re constantly expanding our database. Check back soon!</p>
+                                        <p className="text-sm font-black text-slate-400 uppercase tracking-widest leading-relaxed"> {t.explorer.noSchemesTitle}</p>
+                                        <p className="text-xs text-slate-300 font-medium italic">{t.explorer.noSchemesDesc}</p>
                                     </div>
                                 )}
                             </div>
@@ -240,13 +243,14 @@ export function StateSchemeExplorer() {
                             <div className="p-6 bg-slate-900 text-white rounded-t-3xl text-left">
                                 <div className="flex items-center gap-3 mb-3">
                                     <TrendingUp className="h-4 w-4 text-blue-400" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Regional Impact</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">{t.explorer.impact}</span>
                                 </div>
                                 <h5 className="text-2xl font-black mb-1">12.5k+</h5>
-                                <p className="text-[10px] font-medium text-slate-400">Citizens assisted in {selectedState} this month.</p>
+                                <p className="text-[10px] font-medium text-slate-400">{t.explorer.citizensAssisted.replace("{state}", selectedState)}</p>
                                 <Button className="w-full mt-6 bg-blue-600 hover:bg-blue-700 h-12 font-black text-[11px] uppercase tracking-[0.2em] rounded-xl shadow-lg shadow-blue-500/20">
-                                    VIEW FULL REPORT <ExternalLink className="ml-2 h-3 w-3" />
+                                    {t.explorer.viewFullReport} <ExternalLink className="ml-2 h-3 w-3" />
                                 </Button>
+                                streams,
                             </div>
                         </>
                     )}

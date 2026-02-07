@@ -21,6 +21,11 @@ import { Share2, BarChart3, PieChart as PieChartIcon, Loader2, Info } from "luci
 import { getEligibilityGraphData, EligibilityGraphData, GraphNode, GraphEdge } from "@/services/analytics"
 import { cn } from "@/lib/utils"
 
+interface SimulationNode extends d3.SimulationNodeDatum, GraphNode { }
+interface SimulationLink extends d3.SimulationLinkDatum<SimulationNode> {
+    value: number;
+}
+
 export function EligibilityGraph() {
     const [view, setView] = useState<'network' | 'bar' | 'pie'>('network')
     const [data, setData] = useState<EligibilityGraphData | null>(null)
@@ -55,8 +60,8 @@ export function EligibilityGraph() {
         const svg = d3.select(svgRef.current)
             .attr("viewBox", [0, 0, width, height])
 
-        const simulation = d3.forceSimulation(data.nodes as any)
-            .force("link", d3.forceLink(data.links as any).id((d: any) => d.id).distance(150))
+        const simulation = d3.forceSimulation<SimulationNode>(data.nodes as SimulationNode[])
+            .force("link", d3.forceLink<SimulationNode, SimulationLink>(data.links as SimulationLink[]).id((d) => d.id).distance(150))
             .force("charge", d3.forceManyBody().strength(-300))
             .force("center", d3.forceCenter(width / 2, height / 2))
 
@@ -64,46 +69,46 @@ export function EligibilityGraph() {
             .attr("stroke", "#94a3b8")
             .attr("stroke-opacity", 0.6)
             .selectAll("line")
-            .data(data.links)
+            .data(data.links as SimulationLink[])
             .join("line")
-            .attr("stroke-width", (d: any) => Math.sqrt(d.value) * 2)
+            .attr("stroke-width", (d) => Math.sqrt(d.value) * 2)
 
         const node = svg.append("g")
             .attr("stroke", "#fff")
             .attr("stroke-width", 1.5)
             .selectAll("g")
-            .data(data.nodes)
+            .data(data.nodes as SimulationNode[])
             .join("g")
-            .call(d3.drag<any, any>()
+            .call(d3.drag<any, SimulationNode>()
                 .on("start", dragstarted)
                 .on("drag", dragged)
                 .on("end", dragended))
 
         node.append("circle")
-            .attr("r", (d: any) => d.type === 'scheme' ? 12 : 8)
-            .attr("fill", (d: any) => d.type === 'scheme' ? "#3b82f6" : "#f59e0b")
+            .attr("r", (d) => d.type === 'scheme' ? 12 : 8)
+            .attr("fill", (d) => d.type === 'scheme' ? "#3b82f6" : "#f59e0b")
 
         node.append("text")
-            .text((d: any) => d.label)
+            .text((d) => d.label)
             .attr("x", 15)
             .attr("y", 5)
             .attr("stroke", "none")
             .attr("fill", "#1e293b")
             .attr("font-size", "10px")
-            .attr("font-weight", (d: any) => d.type === 'scheme' ? "bold" : "normal")
+            .attr("font-weight", (d) => d.type === 'scheme' ? "bold" : "normal")
 
         node.append("title")
-            .text((d: any) => `${d.label}\nReach: ${d.value} citizens`)
+            .text((d) => `${d.label}\nReach: ${d.value} citizens`)
 
         simulation.on("tick", () => {
             link
-                .attr("x1", (d: any) => d.source.x)
-                .attr("y1", (d: any) => d.source.y)
-                .attr("x2", (d: any) => d.target.x)
-                .attr("y2", (d: any) => d.target.y)
+                .attr("x1", (d) => (d.source as SimulationNode).x!)
+                .attr("y1", (d) => (d.source as SimulationNode).y!)
+                .attr("x2", (d) => (d.target as SimulationNode).x!)
+                .attr("y2", (d) => (d.target as SimulationNode).y!)
 
             node
-                .attr("transform", (d: any) => `translate(${d.x},${d.y})`)
+                .attr("transform", (d) => `translate(${d.x},${d.y})`)
         })
 
         function dragstarted(event: any) {

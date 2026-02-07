@@ -16,7 +16,8 @@ const ROBUST_SCHEMES: Scheme[] = [
         benefitsSimple: "₹6,000 Annual Direct Benefit",
         documentsRequired: ["Aadhaar Card", "Land Records", "Bank Passbook"],
         applyLink: "https://pmkisan.gov.in/",
-        officialSource: "Ministry of Agriculture"
+        officialSource: "Ministry of Agriculture",
+        deadline: "2026-02-28"
     },
     {
         id: "post-matric-student",
@@ -31,7 +32,8 @@ const ROBUST_SCHEMES: Scheme[] = [
         benefitsSimple: "Tuition fee waiver and monthly stipend",
         documentsRequired: ["Aadhaar Card", "Income Certificate", "Caste Certificate", "Previous Marksheet"],
         applyLink: "https://scholarships.gov.in/",
-        officialSource: "National Scholarship Portal"
+        officialSource: "National Scholarship Portal",
+        deadline: "2026-02-20"
     },
     {
         id: "lakhpati-didi",
@@ -46,7 +48,8 @@ const ROBUST_SCHEMES: Scheme[] = [
         benefitsSimple: "Skill development, micro-credit access, and market linkage",
         documentsRequired: ["Aadhaar Card", "SHG Membership Proof"],
         applyLink: "https://nrlm.gov.in/",
-        officialSource: "Ministry of Rural Development"
+        officialSource: "Ministry of Rural Development",
+        deadline: "2026-03-31"
     },
     {
         id: "maha-unemp-allowance",
@@ -61,7 +64,8 @@ const ROBUST_SCHEMES: Scheme[] = [
         benefitsSimple: "Monthly allowance of ₹2,500 for up to 2 years",
         documentsRequired: ["Aadhaar Card", "Standard 12th/Degree Certificate", "Domicile Certificate"],
         applyLink: "https://mahaswayam.gov.in/",
-        officialSource: "Govt of Maharashtra"
+        officialSource: "Govt of Maharashtra",
+        deadline: "2026-03-15"
     }
 ];
 
@@ -99,6 +103,10 @@ export async function seedRobustSchemes() {
                     state: region.state,
                     name: `Demo Citizen ${i}`,
                     age: 25 + Math.floor(Math.random() * 20),
+                    gender: "Male",
+                    education: "Graduate",
+                    income: 150000,
+                    caste: "General",
                     occupationTags: ["Farmer", "Student"][Math.floor(Math.random() * 2)]
                 },
                 createdAt: new Date()
@@ -109,7 +117,12 @@ export async function seedRobustSchemes() {
                 profileData: {
                     state: region.state,
                     name: `Demo Citizen ${i}`,
-                    age: 30
+                    age: 30,
+                    gender: "Female",
+                    education: "12th Pass",
+                    income: 50000,
+                    caste: "OBC",
+                    occupationTags: ["Worker"]
                 }
             });
 

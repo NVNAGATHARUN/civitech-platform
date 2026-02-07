@@ -13,6 +13,14 @@ export interface SchemeWithReason {
     matchReason: string;
 }
 
+export interface FuturePrediction {
+    scheme: Scheme;
+    reason: string;
+    timeToEligibility: string;
+    actionSteps: string[];
+    type: 'age' | 'income' | 'document';
+}
+
 export async function getAllSchemes(): Promise<Scheme[]> {
     try {
         const snapshot = await getDocs(collection(db, "schemes"));
@@ -91,6 +99,69 @@ export async function getSchemesForProfile(profile: CitizenProfile): Promise<Sch
         return matches;
     } catch (e) {
         console.error("Error in getSchemesForProfile:", e);
+        return [];
+    }
+}
+
+export async function getFuturePredictions(profile: CitizenProfile): Promise<FuturePrediction[]> {
+    try {
+        if (!profile || !profile.profileData) return [];
+        const allSchemes = await getAllSchemes();
+        const predictions: FuturePrediction[] = [];
+
+        const userIncomeNum = profile.profileData.income || 0;
+        const currentAge = profile.profileData.age;
+
+        allSchemes.forEach(scheme => {
+            // 1. Age Prediction (Future Eligibility based on turning minAge)
+            if (currentAge < scheme.minAge && (scheme.minAge - currentAge) <= 2) {
+                const diff = scheme.minAge - currentAge;
+                predictions.push({
+                    scheme,
+                    type: 'age',
+                    reason: `You are currently ${currentAge}, but this scheme is available once you turn ${scheme.minAge}.`,
+                    timeToEligibility: diff === 1 ? "1 year" : `${diff} years`,
+                    actionSteps: ["Keep your age proof document ready.", "Check back on your next birthday."]
+                });
+                return;
+            }
+
+            // 2. Income Prediction (Near miss - within 10%)
+            if (scheme.incomeLimit > 0 && userIncomeNum > scheme.incomeLimit && (userIncomeNum - scheme.incomeLimit) / scheme.incomeLimit <= 0.1) {
+                predictions.push({
+                    scheme,
+                    type: 'income',
+                    reason: `Your income (₹${userIncomeNum.toLocaleString()}) is slightly above the limit (₹${scheme.incomeLimit.toLocaleString()}).`,
+                    timeToEligibility: "Variable",
+                    actionSteps: ["Verify your latest income certificate.", "If your income decreases, you will qualify automatically."]
+                });
+                return;
+            }
+
+            // 3. Document Prediction (Missing documents)
+            const missingDocs = scheme.documentsRequired.filter(doc =>
+                !profile.documentStatus || profile.documentStatus[doc] === 'missing'
+            );
+
+            // If eligible on all other counts but missing docs
+            const matchesAge = currentAge >= scheme.minAge && (scheme.maxAge === 0 || currentAge <= scheme.maxAge);
+            const matchesIncome = scheme.incomeLimit === 0 || userIncomeNum <= scheme.incomeLimit;
+            const matchesState = (scheme.states || []).includes("ALL") || (scheme.states || []).includes(profile.profileData.state);
+
+            if (matchesAge && matchesIncome && matchesState && missingDocs.length > 0 && missingDocs.length <= 2) {
+                predictions.push({
+                    scheme,
+                    type: 'document',
+                    reason: `You qualify for this scheme but are missing ${missingDocs.length} required document(s).`,
+                    timeToEligibility: "Immediate (upon document upload)",
+                    actionSteps: missingDocs.map(doc => `Obtain and scan your ${doc}.`)
+                });
+            }
+        });
+
+        return predictions;
+    } catch (e) {
+        console.error("Error in getFuturePredictions:", e);
         return [];
     }
 }

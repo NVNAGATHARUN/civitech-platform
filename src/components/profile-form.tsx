@@ -9,9 +9,11 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { onAuthStateChanged } from "firebase/auth"
 import { useRouter } from "next/navigation"
+import { useLanguage } from "@/lib/LanguageContext"
 import { CitizenProfile } from "@/lib/types"
 
 export function ProfileForm() {
+    const { t } = useLanguage()
     const [loading, setLoading] = useState(false)
     const [user, setUser] = useState<any>(null)
 
@@ -19,6 +21,7 @@ export function ProfileForm() {
     const [formData, setFormData] = useState<CitizenProfile['profileData']>({
         name: "",
         age: 0,
+        gender: "Male",
         education: "",
         income: 0,
         caste: "",
@@ -86,50 +89,50 @@ export function ProfileForm() {
         }
     }
 
-    if (!user) return <div className="text-center p-10">Loading...</div>
+    if (!user) return <div className="text-center p-10">{t.dashboard.loading}</div>
 
     return (
         <Card className="w-full max-w-md mx-auto">
             <CardHeader>
-                <CardTitle>Your Profile</CardTitle>
+                <CardTitle>{t.profileForm.title}</CardTitle>
                 <CardDescription>
-                    Complete your profile to get personalized scheme recommendations.
+                    {t.profileForm.desc}
                 </CardDescription>
             </CardHeader>
             <form onSubmit={saveProfile}>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
+                        <Label htmlFor="name">{t.check.form.name}</Label>
                         <Input id="name" placeholder="John Doe" value={formData.name} onChange={handleChange} required />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="age">Age</Label>
+                        <Label htmlFor="age">{t.check.form.age}</Label>
                         <Input id="age" type="number" placeholder="20" value={formData.age || ''} onChange={handleChange} required />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="education">Education Level</Label>
+                        <Label htmlFor="education">{t.profileForm.education}</Label>
                         <Input id="education" placeholder="e.g. 12th Pass, Graduate" value={formData.education} onChange={handleChange} required />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="income">Annual Family Income (₹)</Label>
+                        <Label htmlFor="income">{t.profileForm.incomeFamily}</Label>
                         <Input id="income" type="number" placeholder="100000" value={formData.income || ''} onChange={handleChange} required />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="caste">Category / Caste</Label>
+                        <Label htmlFor="caste">{t.profileForm.category}</Label>
                         <Input id="caste" placeholder="General, OBC, SC, ST" value={formData.caste} onChange={handleChange} required />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="state">State</Label>
+                        <Label htmlFor="state">{t.check.form.state}</Label>
                         <Input id="state" placeholder="e.g. Karnataka, Delhi" value={formData.state} onChange={handleChange} required />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="occupationTags">Occupation / Tags (comma separated)</Label>
+                        <Label htmlFor="occupationTags">{t.profileForm.occupationTags}</Label>
                         <Input id="tags" placeholder="Student, Farmer, Unemployed" value={tagsInput} onChange={handleTagsChange} />
                     </div>
                 </CardContent>
                 <CardFooter>
                     <Button type="submit" className="w-full" disabled={loading}>
-                        {loading ? "Saving..." : "Save & Find Schemes"}
+                        {loading ? t.profileForm.saving : t.profileForm.saveAndFind}
                     </Button>
                 </CardFooter>
             </form>

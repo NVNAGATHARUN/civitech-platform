@@ -211,3 +211,134 @@ export async function getEligibilityGraphData(): Promise<EligibilityGraphData> {
         return { nodes: [], links: [] };
     }
 }
+
+export interface AgeDistribution {
+    age: string;
+    count: number;
+    color: string;
+}
+
+export interface IncomeTier {
+    tier: string;
+    count: number;
+}
+
+export interface MonthlyTrend {
+    month: string;
+    applications: number;
+    verified: number;
+}
+
+export interface DemographicAnalytics {
+    ageDistribution: AgeDistribution[];
+    incomeTiers: IncomeTier[];
+}
+
+export async function getDemographicAnalytics(): Promise<DemographicAnalytics> {
+    try {
+        const snapshot = await getDocs(collection(db, "citizenProfiles"));
+        const profiles = snapshot.docs.map(doc => doc.data().profileData);
+
+        // Age buckets
+        const ageBuckets = { "18-25": 0, "26-35": 0, "36-50": 0, "50+": 0 };
+        // Income buckets (assuming income is in Lakhs per annum stored as number, e.g., 1.5)
+        // If income is not present or 0, we can categorize as Unknown or < 1L
+        const incomeBuckets = { "< 1L": 0, "1L - 3L": 0, "3L - 5L": 0, "> 5L": 0 };
+
+        profiles.forEach(p => {
+            if (!p) return;
+            const age = p.age || 0;
+            const income = p.annualIncome || p.income || 0; // Handle schema variations
+
+            // Age Logic
+            if (age >= 18 && age <= 25) ageBuckets["18-25"]++;
+            else if (age >= 26 && age <= 35) ageBuckets["26-35"]++;
+            else if (age >= 36 && age <= 50) ageBuckets["36-50"]++;
+            else if (age > 50) ageBuckets["50+"]++;
+
+            // Income Logic
+            if (income < 100000) incomeBuckets["< 1L"]++;
+            else if (income >= 100000 && income < 300000) incomeBuckets["1L - 3L"]++;
+            else if (income >= 300000 && income < 500000) incomeBuckets["3L - 5L"]++;
+            else if (income >= 500000) incomeBuckets["> 5L"]++;
+        });
+
+        const ageColors: Record<string, string> = {
+            "18-25": "#3B82F6",
+            "26-35": "#60A5FA",
+            "36-50": "#93C5FD",
+            "50+": "#BFDBFE"
+        };
+
+        return {
+            ageDistribution: Object.entries(ageBuckets).map(([age, count]) => ({
+                age,
+                count,
+                color: ageColors[age]
+            })),
+            incomeTiers: Object.entries(incomeBuckets).map(([tier, count]) => ({
+                tier,
+                count
+            }))
+        };
+    } catch (error) {
+        console.error("Error fetching demographic analytics:", error);
+        return {
+            ageDistribution: [],
+            incomeTiers: []
+        };
+    }
+}
+
+export async function getApplicationTrends(): Promise<MonthlyTrend[]> {
+    try {
+        // In a real app, we would query by timestamp range.
+        // For hackathon, we fetch all logs and aggregate in memory.
+        const logsSnap = await getDocs(collection(db, "citizenAssessmentLog"));
+        const statusSnap = await getDocs(collection(db, "schemeStatus"));
+
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const trendsMap: Record<string, { applications: number, verified: number }> = {};
+
+        // Process Applications (Assessments)
+        logsSnap.forEach(doc => {
+            const data = doc.data();
+            // Fallback to current date if createdAt missing
+            const date = data.createdAt ? new Date(data.createdAt.seconds * 1000) : new Date();
+            const monthKey = months[date.getMonth()];
+
+            if (!trendsMap[monthKey]) trendsMap[monthKey] = { applications: 0, verified: 0 };
+            trendsMap[monthKey].applications++;
+        });
+
+        // Process Verified (Benefits Received)
+        statusSnap.forEach(doc => {
+            const data = doc.data();
+            if (data.status === 'benefit_received') {
+                const date = data.updatedAt ? new Date(data.updatedAt.seconds * 1000) : new Date();
+                const monthKey = months[date.getMonth()];
+
+                if (!trendsMap[monthKey]) trendsMap[monthKey] = { applications: 0, verified: 0 };
+                trendsMap[monthKey].verified++;
+            }
+        });
+
+        // Convert to array and handle sorting (simplified for now: just return what we have or valid months)
+        // For a proper chart, we might want to return the last 6 months specifically.
+        // Let's just return the months that have data.
+
+        const trends = Object.entries(trendsMap).map(([month, counts]) => ({
+            month,
+            applications: counts.applications,
+            verified: counts.verified
+        }));
+
+        // Sort by month index to ensure chronological order
+        trends.sort((a, b) => months.indexOf(a.month) - months.indexOf(b.month));
+
+        return trends;
+    } catch (error) {
+        console.error("Error fetching application trends:", error);
+        return [];
+    }
+}

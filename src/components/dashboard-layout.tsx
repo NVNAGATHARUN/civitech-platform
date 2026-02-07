@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useLanguage } from "@/lib/LanguageContext"
 
 interface DashboardLayoutProps {
     children: React.ReactNode
@@ -26,103 +27,109 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, role }: DashboardLayoutProps) {
+    const { t } = useLanguage()
     const pathname = usePathname()
 
     const navItems = role === "admin"
         ? [
-            { name: "Overview", href: "/admin", icon: LayoutDashboard },
-            { name: "Impact Map", href: "/admin/impact", icon: Globe },
-            { name: "Schemes", href: "/admin/schemes", icon: FileText },
-            { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
-            { name: "Citizens", href: "/admin/citizens", icon: Users },
-            { name: "Settings", href: "/admin/settings", icon: Settings },
+            { name: t.sidebar.overview, href: "/admin", icon: LayoutDashboard },
+            { name: t.sidebar.impactMap, href: "/admin/impact", icon: Globe },
+            { name: t.sidebar.schemes, href: "/admin/schemes", icon: FileText },
+            { name: t.sidebar.analytics, href: "/admin/analytics", icon: BarChart3 },
+            { name: t.sidebar.citizens, href: "/admin/citizens", icon: Users },
+            { name: t.sidebar.settings, href: "/admin/settings", icon: Settings },
         ]
         : role === "volunteer"
             ? [
-                { name: "Dashboard", href: "/volunteer", icon: LayoutDashboard },
-                { name: "Impact Map", href: "/admin/impact", icon: Globe },
-                { name: "Beneficiaries", href: "/profile", icon: Users },
-                { name: "Check Eligibility", href: "/check", icon: Search },
-                { name: "Resources", href: "/resources", icon: FileText },
-                { name: "Settings", href: "/volunteer/settings", icon: Settings },
+                { name: t.sidebar.dashboard, href: "/volunteer", icon: LayoutDashboard },
+                { name: t.sidebar.impactMap, href: "/admin/impact", icon: Globe },
+                { name: t.sidebar.beneficiaries, href: "/profile", icon: Users },
+                { name: t.sidebar.checkEligibility, href: "/check", icon: Search },
+                { name: t.sidebar.resources, href: "/resources", icon: FileText },
+                { name: t.sidebar.settings, href: "/volunteer/settings", icon: Settings },
             ]
             : [
-                { name: "My Schemes", href: "/schemes", icon: FileText },
-                { name: "My Profile", href: "/profile", icon: UserCircle },
-                { name: "Resources", href: "/resources", icon: Globe },
-                { name: "Settings", href: "/profile/settings", icon: Settings },
+                { name: t.sidebar.mySchemes, href: "/schemes", icon: FileText },
+                { name: t.sidebar.myProfile, href: "/profile", icon: UserCircle },
+                { name: t.sidebar.resources, href: "/resources", icon: Globe },
+                { name: t.sidebar.settings, href: "/profile/settings", icon: Settings },
             ]
 
     return (
-        <div className="flex h-screen bg-[#F8FAFC]">
-            {/* Sidebar */}
-            <aside className="hidden md:flex flex-col w-64 bg-[#0F172A] text-white">
-                <div className="p-6">
-                    <Link href="/" className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white">
-                            <Building2 className="h-5 w-5" />
+        <div className="flex h-screen bg-[#F8FAFC] overflow-hidden">
+            {/* Sidebar - Refined Premium */}
+            <aside className="hidden md:flex flex-col w-72 bg-[#020617] text-white border-r border-slate-800/50">
+                <div className="p-8">
+                    <Link href="/" className="flex items-center gap-3 group">
+                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] group-hover:scale-110 transition-transform duration-500">
+                            <Building2 className="h-6 w-6" />
                         </div>
-                        <span className="text-xl font-bold tracking-tight uppercase">CitizenDesk</span>
+                        <div className="flex flex-col">
+                            <span className="text-xl font-black tracking-tighter uppercase leading-none">CitizenDesk</span>
+                            <span className="text-[10px] text-blue-400 font-black tracking-[0.2em] mt-1 opacity-80 uppercase leading-none">
+                                {role === "admin" ? "Admin Command" : "Field Workspace"}
+                            </span>
+                        </div>
                     </Link>
-                    <p className="text-[10px] text-blue-400 font-semibold tracking-widest mt-1 opacity-80 uppercase">
-                        {role === "admin" ? "Administrative Portal" : "Volunteer Workspace"}
-                    </p>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-1 mt-4">
+                <nav className="flex-1 px-4 space-y-2 mt-6">
                     {navItems.map((item) => (
                         <Link
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all group",
+                                "flex items-center gap-4 px-4 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-500 group relative overflow-hidden",
                                 pathname === item.href
-                                    ? "bg-blue-600/10 text-blue-400 border-l-2 border-blue-600 rounded-l-none"
-                                    : "text-slate-400 hover:text-white hover:bg-slate-800"
+                                    ? "bg-blue-600 text-white shadow-[0_0_30px_rgba(37,99,235,0.2)]"
+                                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
                             )}
                         >
                             <item.icon className={cn(
-                                "h-5 w-5 transition-colors",
-                                pathname === item.href ? "text-blue-500" : "text-slate-500 group-hover:text-slate-300"
+                                "h-5 w-5 transition-transform duration-500",
+                                pathname === item.href ? "text-white scale-110" : "text-slate-500 group-hover:text-slate-300 group-hover:scale-110"
                             )} />
                             {item.name}
+
                             {pathname === item.href && (
-                                <ChevronRight className="ml-auto h-4 w-4" />
+                                <div className="absolute right-0 top-1/4 bottom-1/4 w-1 bg-white rounded-l-full shadow-[0_0_10px_white]"></div>
                             )}
                         </Link>
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-slate-800">
-                    <Button variant="ghost" className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800 gap-3">
+                <div className="p-6 border-t border-slate-800/50">
+                    <Button variant="ghost" className="w-full justify-start text-slate-400 hover:text-red-400 hover:bg-red-500/10 gap-4 h-12 rounded-xl transition-all font-black text-[10px] uppercase tracking-widest">
                         <LogOut className="h-5 w-5" />
-                        Sign Out
+                        {t.sidebar.signOut}
                     </Button>
                 </div>
             </aside>
 
             {/* Main Content */}
             <main className="flex-1 flex flex-col overflow-hidden">
-                {/* Header */}
-                <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 z-10">
+                {/* Header - Glassmorphic */}
+                <header className="h-20 bg-white/70 backdrop-blur-xl border-b border-slate-200 flex items-center justify-between px-10 z-20 sticky top-0">
                     <div className="flex items-center gap-4">
-                        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                            {navItems.find(i => i.href === pathname)?.name || "Dashboard"}
+                        <h2 className="text-xs font-black text-slate-900 uppercase tracking-[0.25em]">
+                            {navItems.find(i => i.href === pathname)?.name || t.sidebar.overview}
                         </h2>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors relative">
+                    <div className="flex items-center gap-6">
+                        <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all relative">
                             <Bell className="h-5 w-5" />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-blue-600 rounded-full border-2 border-white animate-pulse"></span>
                         </button>
-                        <div className="h-8 w-px bg-slate-200 mx-1"></div>
-                        <div className="flex items-center gap-3">
+                        <div className="h-6 w-px bg-slate-200"></div>
+                        <div className="flex items-center gap-4 group cursor-pointer">
                             <div className="text-right hidden sm:block">
-                                <p className="text-xs font-bold text-slate-900 leading-none">Test {role === "admin" ? "Admin" : "Volunteer"}</p>
-                                <p className="text-[10px] text-slate-500 mt-0.5">{role === "admin" ? "Super User" : "Regional Lead"}</p>
+                                <p className="text-xs font-black text-slate-900 leading-tight group-hover:text-blue-600 transition-colors uppercase tracking-tight">Test {role === "admin" ? "Admin" : "Volunteer"}</p>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{role === "admin" ? "Super User" : "Regional Lead"}</p>
                             </div>
-                            <UserCircle className="h-8 w-8 text-slate-300" />
+                            <div className="h-10 w-10 bg-slate-100 rounded-2xl flex items-center justify-center transition-all group-hover:scale-110 group-hover:bg-blue-600">
+                                <UserCircle className="h-6 w-6 text-slate-400 group-hover:text-white transition-colors" />
+                            </div>
                         </div>
                     </div>
                 </header>

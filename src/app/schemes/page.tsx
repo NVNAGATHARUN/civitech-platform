@@ -103,7 +103,7 @@ export default function SchemesPage() {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                         <input
                             type="text"
-                            placeholder="Search by keywords..."
+                            placeholder={t.schemes.searchPlaceholder}
                             className="w-full h-12 pl-12 pr-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -155,7 +155,7 @@ export default function SchemesPage() {
         return (
             <div className="min-h-[50vh] flex flex-col items-center justify-center space-y-4">
                 <div className="h-10 w-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sourcing Schemes...</p>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{t.schemes.loading}</p>
             </div>
         )
     }
@@ -173,7 +173,7 @@ export default function SchemesPage() {
                             <ChevronLeft className="h-5 w-5" />
                         </Link>
                         <h1 className="text-lg font-bold text-[#0F172A] uppercase tracking-wider">
-                            Welfare Explorer
+                            {t.schemes.title}
                         </h1>
                     </div>
                 </div>

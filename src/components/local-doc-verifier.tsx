@@ -11,9 +11,8 @@ import { Scheme, EligibilityToken } from "@/lib/types"
 import { useLanguage } from "@/lib/LanguageContext"
 
 // PDF.js worker setup
-import * as pdfjsLib from 'pdfjs-dist';
-// Use a stable, high-availability CDN for the worker to avoid fetch errors
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+// PDF.js worker setup removed from top-level to prevent SSR build errors
+// Will be imported dynamically in the handler
 
 interface LocalDocVerifierProps {
     scheme: Scheme;
@@ -33,7 +32,7 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
         if (!file) return
 
         setStatus('processing')
-        setMessage("Initializing Secure Worker...")
+        setMessage(t.verifier.processing)
         setProgress(10)
 
         try {
@@ -53,6 +52,10 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
 
             if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
                 setMessage("Extracting PDF Content...")
+                // Dynamically import PDF.js to avoid SSR issues
+                const pdfjsLib = await import('pdfjs-dist');
+                pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+
                 const arrayBuffer = await file.arrayBuffer();
                 const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
@@ -99,7 +102,7 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
     }
 
     const verifyDocument = (text: string) => {
-        setMessage("Verifying Eligibility...")
+        setMessage(t.verifier.verifying)
 
         // Robust cleanup: remove commas and normalize whitespace
         const cleanText = text.replace(/,/g, '').replace(/\s+/g, ' ');
@@ -217,7 +220,7 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
                                 </label>
                             </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">Supports JPG, PNG, and PDF documents (Verified locally).</p>
+                        <p className="text-xs text-muted-foreground mt-2">{t.verifier.supports}</p>
                     </div>
                 )}
 
@@ -234,7 +237,7 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
                         <p className="font-medium">{t.verifier.success}</p>
                         {detectedAadhaar && (
                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                Detected Aadhaar: XXXX-XXXX-{detectedAadhaar.slice(-4)}
+                                {t.verifier.aadhaar}{detectedAadhaar.slice(-4)}
                             </p>
                         )}
                     </div>
@@ -244,7 +247,7 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
                     <div className="flex flex-col items-center text-red-600 space-y-2 animate-in shake">
                         <AlertCircle className="h-10 w-10" />
                         <p className="font-medium">{message}</p>
-                        <Button variant="ghost" size="sm" onClick={() => setStatus('idle')}>Try Again</Button>
+                        <Button variant="ghost" size="sm" onClick={() => setStatus('idle')}>{t.verifier.tryAgain}</Button>
                         {debugText && (
                             <details className="text-left w-full mt-2">
                                 <summary className="text-xs cursor-pointer">Debug OCR Text</summary>

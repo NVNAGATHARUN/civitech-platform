@@ -28,10 +28,13 @@ import { IndiaHeatmap } from "@/components/india-heatmap"
 import { EligibilityGraph } from "@/components/eligibility-graph"
 import { WelfareBridge } from "@/components/welfare-bridge"
 import { RegionalWelfareBridge } from "@/services/analytics"
+import { useLanguage } from "@/lib/LanguageContext"
 
 import { seedRobustSchemes } from "@/lib/seed-robust"
+import { TourGuide } from "@/components/tour-guide"
 
 export default function AdminDashboard() {
+    const { t } = useLanguage()
     const [seeding, setSeeding] = useState(false)
     const handleSeed = async () => {
         if (confirm("This will overwrite existing schemes with robust test data. Continue?")) {
@@ -102,69 +105,82 @@ export default function AdminDashboard() {
             <DashboardLayout role="admin">
                 <div className="space-y-10">
                     {/* Header Section */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-slate-200">
+                    <div id="tour-admin-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-slate-200">
                         <div>
-                            <h2 className="text-3xl font-black text-[#0F172A] tracking-tight">Governance Intelligence</h2>
-                            <p className="text-slate-500 font-medium mt-1">Real-time engagement metrics and scheme funnel analysis.</p>
+                            <h2 className="text-3xl font-black text-[#0F172A] tracking-tight">{t.admin.title}</h2>
+                            <p className="text-slate-500 font-medium mt-1">{t.admin.subtitle}</p>
                         </div>
                         <div className="flex items-center gap-3">
                             <Button variant="outline" className="border-slate-300 h-11 font-bold" onClick={handleSeed}>
-                                <Database className="mr-2 h-4 w-4" /> SEED REPOSITORY
+                                <Database className="mr-2 h-4 w-4" /> {t.admin.seedRepo}
                             </Button>
                             <Button className="bg-[#0F172A] hover:bg-slate-800 h-11 px-6 font-bold shadow-lg shadow-blue-100">
-                                <Download className="mr-2 h-4 w-4" /> EXPORT REPORT
+                                <Download className="mr-2 h-4 w-4" /> {t.admin.exportReport}
                             </Button>
                         </div>
                     </div>
 
-                    {/* KPI Row */}
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    {/* KPI Row - Glassmorphic */}
+                    <div id="tour-admin-kpi" className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-bottom-8 duration-1000">
                         <KPIComponent
-                            label="Total Assessed"
+                            label={t.admin.totalAssessed}
                             value={loading ? "..." : stats.totalCitizens}
                             trend="+12%"
-                            icon={<Users className="h-4 w-4" />}
+                            icon={<Users className="h-5 w-5" />}
                             color="blue"
+                            stagger="stagger-1"
                         />
                         <KPIComponent
-                            label="Matches Found"
+                            label={t.admin.matchesFound}
                             value={stats.totalRecommendations}
                             trend="+8%"
-                            icon={<TrendingUp className="h-4 w-4" />}
+                            icon={<TrendingUp className="h-5 w-5" />}
                             color="emerald"
+                            stagger="stagger-2"
                         />
                         <KPIComponent
-                            label="Active Funnel"
+                            label={t.admin.activeFunnel}
                             value={stats.statusCounts.applied}
                             trend="+15%"
-                            icon={<BarChart className="h-4 w-4" />}
+                            icon={<BarChart className="h-5 w-5" />}
                             color="indigo"
+                            stagger="stagger-3"
                         />
                         <KPIComponent
-                            label="Doc Readiness"
+                            label={t.admin.docReadiness}
                             value="68%"
                             trend="-2%"
-                            icon={<Activity className="h-4 w-4" />}
+                            icon={<Activity className="h-5 w-5" />}
                             color="amber"
+                            stagger="stagger-1"
                         />
                     </div>
 
-                    {/* India Heatmap - ENHANCED SECTION */}
-                    <IndiaHeatmap data={regionalDemand} />
+                    {/* India Heatmap */}
+                    <div id="tour-admin-heatmap" className="relative p-10 bg-white rounded-[3rem] border border-slate-100 shadow-xl overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.05),_transparent_40%)] pointer-events-none"></div>
+                        <IndiaHeatmap data={regionalDemand} />
+                    </div>
 
-                    {/* Eligibility Graph - NEW SECTION */}
-                    <div className="grid gap-10">
+                    {/* Eligibility Graph */}
+                    <div className="relative p-10 bg-[#0F172A] rounded-[3rem] shadow-2xl overflow-hidden group">
+                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 pointer-events-none"></div>
                         <EligibilityGraph />
                     </div>
 
                     {/* Regional Welfare Bridge */}
-                    <div className="grid gap-10">
-                        <div className="space-y-4">
-                            <h3 className="text-2xl font-black text-[#0F172A] tracking-tight">Regional Welfare Bridge</h3>
-                            <p className="text-slate-500 font-medium">Analyzing the conversion gap between scheme interest and benefit delivery.</p>
+                    <div className="space-y-10">
+                        <div className="flex flex-col gap-2">
+                            <h3 className="text-3xl font-black text-[#0F172A] tracking-tight">{t.admin.regionalBridge}</h3>
+                            <p className="text-slate-600 font-medium">{t.admin.bridgeDesc}</p>
                         </div>
-                        <WelfareBridge data={bridgeData} />
+                        <div className="p-10 bg-white rounded-[3rem] border border-slate-100 shadow-xl relative overflow-hidden">
+                            <div className="absolute -top-20 -left-20 w-80 h-80 bg-blue-500/5 rounded-full blur-[100px]"></div>
+                            <WelfareBridge data={bridgeData} />
+                        </div>
                     </div>
+
+                    <div id="tour-admin-bridge"></div>
 
                     {/* Main Content Grid */}
                     <div className="grid gap-8 lg:grid-cols-3">
@@ -172,10 +188,10 @@ export default function AdminDashboard() {
                         <Card className="lg:col-span-2 border-slate-200 shadow-sm rounded-2xl overflow-hidden hover:shadow-lg transition-all hover-lift">
                             <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
                                 <div className="flex items-center justify-between">
-                                    <CardTitle className="text-lg font-black text-[#0F172A]">Engagement Funnel</CardTitle>
-                                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 border-0">Live Performance</Badge>
+                                    <CardTitle className="text-lg font-black text-[#0F172A]">{t.admin.engagementFunnel}</CardTitle>
+                                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 border-0">{t.admin.livePerformance}</Badge>
                                 </div>
-                                <CardDescription className="text-slate-500 mt-1">User journey from discovery to benefit receipt.</CardDescription>
+                                <CardDescription className="text-slate-500 mt-1">{t.admin.funnelDesc}</CardDescription>
                             </CardHeader>
                             <CardContent className="p-8">
                                 <AdminChart statusCounts={stats.statusCounts as any} />
@@ -185,8 +201,8 @@ export default function AdminDashboard() {
                         {/* Funnel Drop-offs */}
                         <Card className="border-slate-200 shadow-sm rounded-2xl overflow-hidden hover:shadow-lg transition-all hover-lift">
                             <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6">
-                                <CardTitle className="text-lg font-black text-[#0F172A]">Drop-off Analysis</CardTitle>
-                                <CardDescription className="text-slate-500 mt-1">Primary reasons for ineligibility.</CardDescription>
+                                <CardTitle className="text-lg font-black text-[#0F172A]">{t.admin.dropOffAnalysis}</CardTitle>
+                                <CardDescription className="text-slate-500 mt-1">{t.admin.dropOffDesc}</CardDescription>
                             </CardHeader>
                             <CardContent className="p-6">
                                 <div className="space-y-6">
@@ -210,7 +226,7 @@ export default function AdminDashboard() {
                                     <div className="flex gap-3">
                                         <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
                                         <p className="text-[11px] font-medium text-slate-500 leading-relaxed">
-                                            <strong className="text-slate-700">Action Recommended:</strong> High drop-off due to income limits suggests a need for middle-income specific programs.
+                                            <strong className="text-slate-700">{t.admin.actionRecommended}</strong> {t.admin.incomeLimitNotice}
                                         </p>
                                     </div>
                                 </div>
@@ -218,34 +234,83 @@ export default function AdminDashboard() {
                         </Card>
                     </div>
                 </div>
+
+                <TourGuide
+                    tourKey="admin_page_v1"
+                    steps={[
+                        {
+                            element: '#tour-admin-header',
+                            popover: {
+                                title: 'Admin Command Center',
+                                description: 'Real-time overview of the entire welfare ecosystem.',
+                                side: 'bottom'
+                            }
+                        },
+                        {
+                            element: '#tour-admin-kpi',
+                            popover: {
+                                title: 'Key Performance Indicators',
+                                description: 'Live metrics on citizen engagement and processing speed.',
+                                side: 'bottom'
+                            }
+                        },
+                        {
+                            element: '#tour-admin-heatmap',
+                            popover: {
+                                title: 'Geospatial Demand',
+                                description: 'Visualize where demand is highest across states.',
+                                side: 'top'
+                            }
+                        },
+                        {
+                            element: '.bg-white/50', // Targeting the funnel chart loosely or by added ID if possible, but let's stick to what we added or existing classes if easy. Actually let's just add an ID to the funnel chart in a separate chunk or just use the bridge ID for next.
+                            popover: {
+                                title: 'Welfare Bridge',
+                                description: 'Track the gap between demand and delivery.',
+                                side: 'top'
+                            }
+                        }
+                    ]}
+                />
             </DashboardLayout>
-        </RoleGuard>
+        </RoleGuard >
     )
 }
 
-function KPIComponent({ label, value, trend, icon, color }: { label: string, value: string | number, trend: string, icon: React.ReactNode, color: string }) {
+function KPIComponent({ label, value, trend, icon, color, stagger }: { label: string, value: string | number, trend: string, icon: React.ReactNode, color: string, stagger?: string }) {
     return (
-        <Card className="border-slate-200 shadow-sm hover:shadow-xl transition-all hover-lift group">
-            <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                    <div className={cn("p-2 rounded-lg transition-colors group-hover:scale-110 duration-500",
-                        color === "blue" && "bg-blue-50 text-blue-600",
-                        color === "emerald" && "bg-emerald-50 text-emerald-600",
-                        color === "indigo" && "bg-indigo-50 text-indigo-600",
-                        color === "amber" && "bg-amber-50 text-amber-600",
-                    )}>
-                        {icon}
+        <div className={cn("relative group animate-in fade-in slide-in-from-bottom-8 duration-1000", stagger)}>
+            <Card className="border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-500 rounded-[2rem] overflow-hidden bg-white hover:-translate-y-2 group">
+                <CardContent className="p-8 relative z-10">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className={cn("p-4 rounded-2xl transition-all duration-700 group-hover:scale-125 group-hover:rotate-12 shadow-sm",
+                            color === "blue" && "bg-blue-50 text-blue-600",
+                            color === "emerald" && "bg-emerald-50 text-emerald-600",
+                            color === "indigo" && "bg-indigo-50 text-indigo-600",
+                            color === "amber" && "bg-amber-50 text-amber-600",
+                        )}>
+                            {icon}
+                        </div>
+                        <div className={cn("flex items-center text-[10px] font-black py-1.5 px-3 rounded-full shadow-sm",
+                            trend.startsWith('+') ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-red-50 text-red-600 border border-red-100"
+                        )}>
+                            {trend.startsWith('+') ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
+                            {trend}
+                        </div>
                     </div>
-                    <div className={cn("flex items-center text-[10px] font-black py-1 px-2 rounded-sm",
-                        trend.startsWith('+') ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
-                    )}>
-                        {trend.startsWith('+') ? <ArrowUpRight className="h-3 w-3 mr-0.5" /> : <ArrowDownRight className="h-3 w-3 mr-0.5" />}
-                        {trend}
-                    </div>
-                </div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-                <h4 className="text-2xl font-black text-[#0F172A]">{value}</h4>
-            </CardContent>
-        </Card>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{label}</p>
+                    <h4 className="text-3xl font-black text-slate-900 tracking-tighter">{value}</h4>
+                </CardContent>
+
+                {/* Hover Glow */}
+                <div className={cn(
+                    "absolute -bottom-10 -right-10 w-32 h-32 rounded-full blur-[60px] opacity-0 group-hover:opacity-20 transition-opacity duration-1000",
+                    color === 'blue' ? "bg-blue-600" : color === 'emerald' ? "bg-emerald-600" : color === 'indigo' ? "bg-indigo-600" : "bg-amber-600"
+                )}></div>
+
+                {/* Shine Overlay */}
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/40 via-transparent to-transparent pointer-events-none"></div>
+            </Card>
+        </div>
     )
 }

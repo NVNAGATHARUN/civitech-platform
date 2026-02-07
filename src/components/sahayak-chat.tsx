@@ -8,6 +8,7 @@ import { MessageSquare, X, Send, Sparkles, User, Bot, Loader2, Mic, MicOff, Volu
 import { cn } from "@/lib/utils"
 import { getBotResponse, ChatMessage } from "@/services/ai-assistant"
 import { useLanguage } from "@/lib/LanguageContext"
+import { DraftService } from "@/services/drafts"
 
 export function SahayakChat() {
     const { language } = useLanguage()
@@ -22,6 +23,7 @@ export function SahayakChat() {
     const [voiceEnabled, setVoiceEnabled] = useState(true)
     const scrollRef = useRef<HTMLDivElement>(null)
     const recognitionRef = useRef<any>(null)
+    const [isSpeechSupported, setIsSpeechSupported] = useState(false)
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -63,6 +65,7 @@ export function SahayakChat() {
             }
 
             recognitionRef.current = recognition
+            setIsSpeechSupported(true)
         }
     }, [])
 
@@ -115,7 +118,9 @@ export function SahayakChat() {
 
         // Artificial delay for "AI Feel"
         setTimeout(async () => {
-            const botResponse = await getBotResponse(textToSend, updatedMessages)
+            const drafts = DraftService.getAllDrafts();
+            const userContext = drafts.length > 0 ? drafts[drafts.length - 1] : undefined;
+            const botResponse = await getBotResponse(textToSend, updatedMessages, userContext)
             setMessages(prev => [...prev, { role: 'bot', content: botResponse }])
             setIsTyping(false)
             // Speak the response
@@ -213,16 +218,18 @@ export function SahayakChat() {
                                         value={input}
                                         onChange={e => setInput(e.target.value)}
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={toggleListening}
-                                        className={cn(
-                                            "absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-colors",
-                                            isListening ? "text-blue-600 bg-blue-50 shadow-inner" : "text-slate-400 hover:text-blue-500"
-                                        )}
-                                    >
-                                        {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                                    </button>
+                                    {isSpeechSupported && (
+                                        <button
+                                            type="button"
+                                            onClick={toggleListening}
+                                            className={cn(
+                                                "absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-colors",
+                                                isListening ? "text-blue-600 bg-blue-50 shadow-inner" : "text-slate-400 hover:text-blue-500"
+                                            )}
+                                        >
+                                            {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                                        </button>
+                                    )}
                                 </div>
                                 <Button size="icon" className="h-12 w-12 bg-blue-600 hover:bg-blue-700 rounded-xl shrink-0 shadow-lg shadow-blue-500/20">
                                     <Send className="h-5 w-5" />
