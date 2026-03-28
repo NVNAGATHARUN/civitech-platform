@@ -1,6 +1,6 @@
 "use client"
 
-import { RegionalWelfareBridge } from "@/services/analytics"
+import { getRegionalDemand, RegionalWelfareBridge } from "@/services/data-service"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { ArrowUpRight, AlertTriangle, CheckCircle2 } from "lucide-react"

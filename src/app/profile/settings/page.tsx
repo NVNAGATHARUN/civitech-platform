@@ -30,6 +30,11 @@ export default function UserSettingsPage() {
     const [user, setUser] = useState<any>(null)
 
     useEffect(() => {
+        if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
+            console.warn("Firebase uninitialized, using demo user for UserSettingsPage");
+            setUser({ uid: "demo-user-123", email: "demo@civitech.in" });
+            return;
+        }
         const unsubscribe = onAuthStateChanged(auth, (u) => {
             if (u) setUser(u)
         })

@@ -16,10 +16,12 @@ export interface CitizenProfile {
     profileData: {
         name: string;
         age: number;
+        gender: string;
         education: string;
         income: number;
         caste: string;
         state: string;
+        district?: string;
         occupationTags: string[];
     };
     documentStatus: Record<string, 'verified' | 'pending' | 'missing'>;
@@ -36,6 +38,7 @@ export interface Scheme {
     occupationTags: string[];
     states: string[]; // Supports ["ALL"]
     descriptionSimple: string;
+    deadline?: string;
     benefitsSimple: string;
     documentsRequired: string[];
     familySizeLimit?: number;
@@ -74,4 +77,17 @@ export interface Beneficiary {
     occupation?: string;
     status: 'Verified' | 'In Review' | 'Processing';
     createdAt: Timestamp;
+}
+
+export interface WelfareUpdate {
+    id: string;
+    title: string;
+    description: string;
+    type: 'deadline' | 'new_scheme' | 'policy_change' | 'benefit_boost';
+    severity: 'high' | 'medium' | 'info';
+    date: string;
+    occupationTags: string[];
+    states: string[]; // Supports ["ALL"]
+    actionLabel?: string;
+    actionLink?: string;
 }

@@ -2,6 +2,7 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { Scheme, CitizenProfile } from "@/lib/types";
 import { getUserBeneficiaries } from "./beneficiaries";
+import schemes from "@/lib/schemes.json";
 
 export interface MatchedScheme extends Scheme {
     matchReason?: string;
@@ -13,17 +14,31 @@ export interface SchemeWithReason {
     matchReason: string;
 }
 
+export interface FuturePrediction {
+    scheme: Scheme;
+    reason: string;
+    timeToEligibility: string;
+    actionSteps: string[];
+    type: 'age' | 'income' | 'document';
+}
+
 export async function getAllSchemes(): Promise<Scheme[]> {
+    if (!db || !db.app || !db.app.options || !db.app.options.apiKey) {
+        console.warn("Firebase uninitialized, using local schemes.json fallback");
+        return schemes as Scheme[];
+    }
     try {
         const snapshot = await getDocs(collection(db, "schemes"));
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Scheme));
+        const fbSchemes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Scheme));
+        return fbSchemes.length > 0 ? fbSchemes : schemes as Scheme[];
     } catch (error) {
-        console.error("Error fetching schemes:", error);
-        return [];
+        console.error("Error fetching schemes, falling back to local:", error);
+        return schemes as Scheme[];
     }
 }
 
 export async function getSchemesForProfile(profile: CitizenProfile): Promise<SchemeWithReason[]> {
+    // We allow this to run even if Firebase is uninitialized by using the fallback in getAllSchemes
     try {
         if (!profile || !profile.profileData) return [];
         // 1. Fetch all schemes
@@ -91,6 +106,70 @@ export async function getSchemesForProfile(profile: CitizenProfile): Promise<Sch
         return matches;
     } catch (e) {
         console.error("Error in getSchemesForProfile:", e);
+        return [];
+    }
+}
+
+export async function getFuturePredictions(profile: CitizenProfile): Promise<FuturePrediction[]> {
+    // We allow this to run even if Firebase is uninitialized by using the fallback in getAllSchemes
+    try {
+        if (!profile || !profile.profileData) return [];
+        const allSchemes = await getAllSchemes();
+        const predictions: FuturePrediction[] = [];
+
+        const userIncomeNum = profile.profileData.income || 0;
+        const currentAge = profile.profileData.age;
+
+        allSchemes.forEach(scheme => {
+            // 1. Age Prediction (Future Eligibility based on turning minAge)
+            if (currentAge < scheme.minAge && (scheme.minAge - currentAge) <= 2) {
+                const diff = scheme.minAge - currentAge;
+                predictions.push({
+                    scheme,
+                    type: 'age',
+                    reason: `You are currently ${currentAge}, but this scheme is available once you turn ${scheme.minAge}.`,
+                    timeToEligibility: diff === 1 ? "1 year" : `${diff} years`,
+                    actionSteps: ["Keep your age proof document ready.", "Check back on your next birthday."]
+                });
+                return;
+            }
+
+            // 2. Income Prediction (Near miss - within 10%)
+            if (scheme.incomeLimit > 0 && userIncomeNum > scheme.incomeLimit && (userIncomeNum - scheme.incomeLimit) / scheme.incomeLimit <= 0.1) {
+                predictions.push({
+                    scheme,
+                    type: 'income',
+                    reason: `Your income (₹${userIncomeNum.toLocaleString()}) is slightly above the limit (₹${scheme.incomeLimit.toLocaleString()}).`,
+                    timeToEligibility: "Variable",
+                    actionSteps: ["Verify your latest income certificate.", "If your income decreases, you will qualify automatically."]
+                });
+                return;
+            }
+
+            // 3. Document Prediction (Missing documents)
+            const missingDocs = scheme.documentsRequired.filter(doc =>
+                !profile.documentStatus || profile.documentStatus[doc] === 'missing'
+            );
+
+            // If eligible on all other counts but missing docs
+            const matchesAge = currentAge >= scheme.minAge && (scheme.maxAge === 0 || currentAge <= scheme.maxAge);
+            const matchesIncome = scheme.incomeLimit === 0 || userIncomeNum <= scheme.incomeLimit;
+            const matchesState = (scheme.states || []).includes("ALL") || (scheme.states || []).includes(profile.profileData.state);
+
+            if (matchesAge && matchesIncome && matchesState && missingDocs.length > 0 && missingDocs.length <= 2) {
+                predictions.push({
+                    scheme,
+                    type: 'document',
+                    reason: `You qualify for this scheme but are missing ${missingDocs.length} required document(s).`,
+                    timeToEligibility: "Immediate (upon document upload)",
+                    actionSteps: missingDocs.map(doc => `Obtain and scan your ${doc}.`)
+                });
+            }
+        });
+
+        return predictions;
+    } catch (e) {
+        console.error("Error in getFuturePredictions:", e);
         return [];
     }
 }

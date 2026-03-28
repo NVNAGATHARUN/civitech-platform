@@ -27,19 +27,53 @@ export default function SchemesPage() {
     const [loading, setLoading] = useState(true)
     const [hasProfile, setHasProfile] = useState(false)
     const [userRole, setUserRole] = useState<string | null>(null)
+    const [user, setUser] = useState<any>(null)
 
     const [searchTerm, setSearchTerm] = useState("")
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
+            console.warn("Firebase uninitialized, using demo user for SchemesPage");
+            const demoUser = { uid: "demo-user-123", email: "demo@civitech.in" };
+            setUser(demoUser);
+            setUserRole("citizen");
+
+            // Fetch local profile and matching schemes
+            const localProfile = JSON.parse(localStorage.getItem(`citizenProfile_${demoUser.uid}`) || "null");
+            if (localProfile) {
+                setHasProfile(true);
+                getSchemesForProfile(localProfile).then(results => {
+                    setMatches(results.map(r => ({
+                        ...r.scheme,
+                        matchReason: r.matchReason,
+                        isEligible: true
+                    })));
+                });
+            } else {
+                setHasProfile(false);
+            }
+
+            getAllSchemes().then(setAllSchemes);
+            setLoading(false);
+            return;
+        }
+
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             setLoading(true)
             try {
                 const all = await getAllSchemes()
                 setAllSchemes(all)
 
-                if (user) {
+                if (currentUser) { // Check if currentUser exists
+                    setUser(currentUser) // Set the user state
+                    // Assuming getUserRole is a function that needs to be defined or imported
+                    // For now, keeping the existing role determination logic.
+                    // const userRole = await getUserRole(currentUser.uid) // This line was requested but getUserRole is not defined.
+                    // If this is meant to replace the email-based role logic,
+                    // further instructions or definition of getUserRole are needed.
+
                     // Check if volunteer
-                    if (user.email?.includes("volunteer")) {
+                    if (currentUser.email?.includes("volunteer")) {
                         setUserRole("volunteer")
                     } else if (user.email?.includes("admin")) {
                         setUserRole("admin")
@@ -103,7 +137,7 @@ export default function SchemesPage() {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                         <input
                             type="text"
-                            placeholder="Search by keywords..."
+                            placeholder={t.schemes.searchPlaceholder}
                             className="w-full h-12 pl-12 pr-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -155,7 +189,7 @@ export default function SchemesPage() {
         return (
             <div className="min-h-[50vh] flex flex-col items-center justify-center space-y-4">
                 <div className="h-10 w-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
-                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Sourcing Schemes...</p>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{t.schemes.loading}</p>
             </div>
         )
     }
@@ -173,7 +207,7 @@ export default function SchemesPage() {
                             <ChevronLeft className="h-5 w-5" />
                         </Link>
                         <h1 className="text-lg font-bold text-[#0F172A] uppercase tracking-wider">
-                            Welfare Explorer
+                            {t.schemes.title}
                         </h1>
                     </div>
                 </div>

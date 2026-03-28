@@ -14,13 +14,17 @@ import {
     FileText
 } from "lucide-react"
 import { useState, useEffect } from "react"
-import { auth } from "@/lib/firebase"
+import { auth, db } from "@/lib/firebase"
 import { updateSchemeStatus } from "@/services/schemeStatus"
 import { cn } from "@/lib/utils"
+import { useUserRole } from "@/lib/useUserRole"
 
 import { toast } from "sonner"
+import { useLanguage } from "@/lib/LanguageContext"
 
 export function SchemeCard({ scheme, isRecommended = false }: { scheme: Scheme, isRecommended?: boolean }) {
+    const { user } = useUserRole()
+    const { language, t } = useLanguage()
     const [loading, setLoading] = useState<'planned' | 'applied' | null>(null)
     const [status, setStatus] = useState<SchemeStatus | null>(null)
     const [isSpeaking, setIsSpeaking] = useState(false)
@@ -35,8 +39,15 @@ export function SchemeCard({ scheme, isRecommended = false }: { scheme: Scheme, 
         const text = `${scheme.name}. ${scheme.descriptionSimple}. Benefits include ${scheme.benefitsSimple}`
         const utterance = new SpeechSynthesisUtterance(text)
 
-        // Match language if possible (simple detection)
-        utterance.lang = 'en-IN'
+        // Match language based on current context or detected script
+        const langMap: Record<string, string> = {
+            'en': 'en-IN',
+            'hi': 'hi-IN',
+            'te': 'te-IN'
+        }
+        utterance.lang = langMap[language] || 'en-IN'
+
+        // Fallback detection for cross-language content
         if (text.match(/[\u0900-\u097F]/)) utterance.lang = 'hi-IN'
         if (text.match(/[\u0C00-\u0C7F]/)) utterance.lang = 'te-IN'
 
@@ -50,7 +61,8 @@ export function SchemeCard({ scheme, isRecommended = false }: { scheme: Scheme, 
     }, [])
 
     const handleAction = async (action: 'planned' | 'applied') => {
-        const user = auth.currentUser
+        const isFirebaseReady = db && db.app && db.app.options && db.app.options.apiKey;
+
         if (!user) {
             alert("Please login to shortlist or apply for schemes.")
             return
@@ -79,7 +91,7 @@ export function SchemeCard({ scheme, isRecommended = false }: { scheme: Scheme, 
             {isRecommended && (
                 <div className="absolute top-0 right-0 z-10">
                     <div className="bg-emerald-500 text-white text-[10px] font-black px-4 py-1 rounded-bl-2xl uppercase tracking-[0.2em] animate-pulse">
-                        Best Match
+                        {t.schemeCard.bestMatch}
                     </div>
                 </div>
             )}
@@ -108,7 +120,7 @@ export function SchemeCard({ scheme, isRecommended = false }: { scheme: Scheme, 
                 <div className="p-5 bg-slate-50 rounded-[1.5rem] border border-slate-100 group-hover:bg-white transition-colors duration-500">
                     <div className="flex items-center gap-2 mb-2">
                         <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Core Benefit</span>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.schemeCard.coreBenefit}</span>
                     </div>
                     <p className="text-sm font-black text-slate-900 leading-snug">
                         {scheme.benefitsSimple}
@@ -118,7 +130,7 @@ export function SchemeCard({ scheme, isRecommended = false }: { scheme: Scheme, 
                 <div className="space-y-3 px-1">
                     <div className="flex items-center gap-2">
                         <div className="h-1.5 w-1.5 rounded-full bg-blue-400"></div>
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Required Proofs</span>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.schemeCard.requiredProofs}</span>
                     </div>
                     <p className="text-xs text-slate-500 font-bold">
                         {scheme.documentsRequired?.slice(0, 3).join(", ")}
@@ -138,7 +150,7 @@ export function SchemeCard({ scheme, isRecommended = false }: { scheme: Scheme, 
                     onClick={() => handleAction('planned')}
                 >
                     {loading === 'planned' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bookmark className="h-4 w-4" />}
-                    {status === 'planned' ? 'SAVED' : 'SAVE'}
+                    {status === 'planned' ? t.schemeCard.saved : t.schemeCard.save}
                 </Button>
 
                 <Button
@@ -150,7 +162,7 @@ export function SchemeCard({ scheme, isRecommended = false }: { scheme: Scheme, 
                         <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                         <>
-                            {status === 'applied' ? 'APPLIED' : 'APPLY JOIN'}
+                            {status === 'applied' ? t.schemeCard.applied : t.schemeCard.apply}
                             <ArrowRight className="h-4 w-4 transition-all group-hover/btn:translate-x-1" />
                         </>
                     )}

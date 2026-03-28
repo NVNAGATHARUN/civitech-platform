@@ -21,8 +21,10 @@ import {
     ArrowRight
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useLanguage } from "@/lib/LanguageContext"
 
 export default function CitizensPage() {
+    const { t } = useLanguage()
     const [citizens, setCitizens] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
@@ -59,21 +61,21 @@ export default function CitizensPage() {
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div>
-                            <h2 className="text-3xl font-black text-[#0F172A] tracking-tight">Citizen Directory</h2>
-                            <p className="text-slate-500 font-medium">Manage and monitor registered citizen profiles and their eligibility status.</p>
+                            <h2 className="text-3xl font-black text-[#0F172A] tracking-tight">{t.admin.directory.title}</h2>
+                            <p className="text-slate-500 font-medium">{t.admin.directory.desc}</p>
                         </div>
                         <div className="flex items-center gap-3">
                             <div className="relative w-64">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                 <Input
-                                    placeholder="Search citizens..."
+                                    placeholder={t.admin.directory.search}
                                     className="pl-10 h-11 border-slate-200 bg-white"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
                             </div>
                             <Button variant="outline" className="h-11 border-slate-200">
-                                <Filter className="mr-2 h-4 w-4" /> Filter
+                                <Filter className="mr-2 h-4 w-4" /> {t.admin.directory.filter}
                             </Button>
                         </div>
                     </div>
@@ -82,17 +84,17 @@ export default function CitizensPage() {
                     {loading ? (
                         <div className="py-20 flex flex-col items-center justify-center space-y-4">
                             <div className="h-10 w-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
-                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Loading Database...</p>
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t.admin.directory.loading}</p>
                         </div>
                     ) : (
                         <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-sm">
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-slate-50/50 border-b border-slate-200">
-                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Citizen</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Demographics</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Recent Activity</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.admin.directory.thCitizen}</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.admin.directory.thDemographics}</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.admin.directory.thStatus}</th>
+                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.admin.directory.thActivity}</th>
                                         <th className="px-8 py-5 text-right font-black text-slate-400 uppercase tracking-widest"></th>
                                     </tr>
                                 </thead>
@@ -105,8 +107,8 @@ export default function CitizensPage() {
                                                         <User className="h-5 w-5" />
                                                     </div>
                                                     <div>
-                                                        <p className="font-black text-slate-900 leading-none">{citizen.fullName || 'Anonymous User'}</p>
-                                                        <p className="text-xs text-slate-500 mt-1 font-medium">{citizen.email || 'No email provided'}</p>
+                                                        <p className="font-black text-slate-900 leading-none">{citizen.fullName || t.admin.directory.anonymous}</p>
+                                                        <p className="text-xs text-slate-500 mt-1 font-medium">{citizen.email || t.admin.directory.noEmail}</p>
                                                     </div>
                                                 </div>
                                             </td>
@@ -125,13 +127,13 @@ export default function CitizensPage() {
                                                     "rounded-full font-black text-[10px] uppercase tracking-widest px-3 py-1 border-0",
                                                     citizen.isVerified ? "bg-emerald-100 text-emerald-600" : "bg-amber-100 text-amber-600"
                                                 )}>
-                                                    {citizen.isVerified ? 'Verified' : 'Pending'}
+                                                    {citizen.isVerified ? t.admin.directory.verified : t.admin.directory.pending}
                                                 </Badge>
                                             </td>
                                             <td className="px-8 py-6">
                                                 <div className="flex items-center gap-2 text-xs text-slate-500 font-medium italic">
                                                     <FileText className="h-3 w-4 text-slate-400" />
-                                                    {citizen.lastChecked || 'No check history'}
+                                                    {citizen.lastChecked || t.admin.directory.noActivity}
                                                 </div>
                                             </td>
                                             <td className="px-8 py-6 text-right">
@@ -146,7 +148,7 @@ export default function CitizensPage() {
                                             <td colSpan={5} className="px-8 py-20 text-center">
                                                 <div className="flex flex-col items-center justify-center space-y-3 opacity-40">
                                                     <User className="h-10 w-10 text-slate-400" />
-                                                    <p className="text-sm font-black text-slate-500 uppercase tracking-widest">No citizens found</p>
+                                                    <p className="text-sm font-black text-slate-500 uppercase tracking-widest">{t.admin.directory.noResults}</p>
                                                 </div>
                                             </td>
                                         </tr>

@@ -1,8 +1,16 @@
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { EligibilityToken } from "@/lib/types";
 
 export async function getUserTokens(userId: string): Promise<EligibilityToken[]> {
+    const isFirebaseReady = db && db.app && db.app.options && db.app.options.apiKey;
+
+    if (!isFirebaseReady) {
+        console.warn("Firebase uninitialized, fetching tokens from localStorage (demo mode)");
+        const localData = localStorage.getItem(`eligibilityTokens_${userId}`);
+        return localData ? JSON.parse(localData) : [];
+    }
+
     try {
         const q = query(
             collection(db, "eligibilityTokens"),
@@ -10,10 +18,16 @@ export async function getUserTokens(userId: string): Promise<EligibilityToken[]>
         );
         const querySnapshot = await getDocs(q);
 
-        return querySnapshot.docs.map(doc => ({
+        const results = querySnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
-        } as EligibilityToken)).sort((a, b) => b.issuedAt.toMillis() - a.issuedAt.toMillis());
+        } as EligibilityToken));
+
+        return results.sort((a, b) => {
+            const timeA = a.issuedAt?.toMillis?.() || 0;
+            const timeB = b.issuedAt?.toMillis?.() || 0;
+            return timeB - timeA;
+        });
     } catch (error) {
         console.error("Error fetching user tokens:", error);
         return [];

@@ -27,7 +27,7 @@ function getFallbackResponse(message: string): string {
 
 export async function POST(req: Request) {
     try {
-        const { message, history } = await req.json();
+        const { message, history, userContext } = await req.json();
 
         if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === "") {
             console.warn("GEMINI_API_KEY missing - falling back to keyword matching.");
@@ -36,13 +36,30 @@ export async function POST(req: Request) {
 
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-        const systemPrompt = `
+        let systemPrompt = `
 You are 'Sahayak', a digital welfare assistant for the CitizenDesk portal. 
 Your goal is to help Indian citizens find and understand government welfare schemes they are eligible for.
 
 Here is the current database of schemes you should refer to:
 ${JSON.stringify(schemes, null, 2)}
+`;
 
+        if (userContext) {
+            systemPrompt += `\n
+IMPORTANT: You are speaking to a specific citizen with the following profile:
+- Name: ${userContext.name || "Unknown"}
+- Age: ${userContext.age || "Unknown"}
+- Gender: ${userContext.gender || "Unknown"}
+- Occupation: ${userContext.occupation || "Unknown"}
+- Income Band: ${userContext.incomeBand || userContext.income || "Unknown"}
+- State: ${userContext.state || "Unknown"}
+- District: ${userContext.district || "Unknown"}
+
+Please tailor your responses to this profile. matched schemes should be highlighted.
+`;
+        }
+
+        systemPrompt += `
 Instructions:
 1. Use the provided JSON data to answer questions about specific schemes.
 2. If a user asks broadly (e.g., "help me with farming"), identify relevant schemes from the list.
@@ -53,22 +70,48 @@ Instructions:
 7. Always encourage users to "Check Eligibility" using the portal's automated tool for a definitive answer.
 `;
 
-        const model = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash",
-            systemInstruction: systemPrompt
-        });
+        const modelsToTry = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"];
+        let lastError = null;
+        let text = "";
 
-        const chat = model.startChat({
-            history: history || [],
-        });
+        for (const modelName of modelsToTry) {
+            try {
+                console.log(`Trying model: ${modelName}`);
+                const model = genAI.getGenerativeModel({
+                    model: modelName,
+                    systemInstruction: systemPrompt
+                });
 
-        const result = await chat.sendMessage(message);
-        const response = await result.response;
-        const text = response.text();
+                const chat = model.startChat({
+                    history: history || [],
+                });
+
+                const result = await chat.sendMessage(message);
+                const response = await result.response;
+                text = response.text();
+
+                if (text) break; // Success!
+            } catch (err: any) {
+                console.warn(`Model ${modelName} failed:`, err.message);
+                lastError = err;
+                // If it's a 404, we continue to the next model
+                if (err.message?.includes("404") || err.message?.includes("not found")) {
+                    continue;
+                }
+                // If it's another error (like 429), we stop
+                throw err;
+            }
+        }
+
+        if (!text && lastError) throw lastError;
 
         return NextResponse.json({ text });
     } catch (error: any) {
-        console.error("Gemini API Error:", error);
+        console.error("Gemini API Error Detail:", {
+            message: error.message,
+            stack: error.stack,
+            cause: error.cause
+        });
 
         // Detect Rate Limit (429) errors
         if (error.message?.includes("429") || error.message?.includes("quota")) {
@@ -78,6 +121,14 @@ Instructions:
             );
         }
 
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        // Detect Invalid Model Errors
+        if (error.message?.includes("404") || error.message?.includes("not found")) {
+            return NextResponse.json(
+                { error: `Model error: ${error.message}. Please check if the model name is correct.` },
+                { status: 404 }
+            );
+        }
+
+        return NextResponse.json({ error: error.message || "Unknown error occurred" }, { status: 500 });
     }
 }

@@ -7,13 +7,15 @@ import { auth, db } from "@/lib/firebase"
 import { onAuthStateChanged } from "firebase/auth"
 import { getUserSchemeStatuses } from "@/services/schemeStatus"
 import { getAllSchemes } from "@/services/schemes"
-import { CitizenSchemeStatus, Scheme, Beneficiary } from "@/lib/types"
+import { CitizenSchemeStatus, Scheme, Beneficiary, CitizenProfile } from "@/lib/types"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Bookmark, Send, CheckCircle2, LayoutDashboard, UserCircle, Settings2, Users, Trash2, FileText, Plus, ShieldCheck } from "lucide-react"
+import { Bookmark, Send, CheckCircle2, LayoutDashboard, UserCircle, Settings2, Users, Trash2, FileText, Plus, ShieldCheck, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { StatusTimeline } from "@/components/status-timeline"
 import { getUserBeneficiaries, addBeneficiary, deleteBeneficiary } from "@/services/beneficiaries"
+import { getProfile } from "@/services/profile"
+import { WelfareIntelligenceFeed } from "@/components/welfare-intelligence-feed"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -24,7 +26,8 @@ export default function ProfilePage() {
     const [user, setUser] = useState<any>(null)
     const [trackedSchemes, setTrackedSchemes] = useState<(CitizenSchemeStatus & { scheme?: Scheme })[]>([])
     const [loading, setLoading] = useState(true)
-    const [activeTab, setActiveTab] = useState<'profile' | 'schemes' | 'beneficiaries' | 'vault'>('profile')
+    const [activeTab, setActiveTab] = useState<'profile' | 'intelligence' | 'schemes' | 'beneficiaries' | 'vault'>('profile')
+    const [citizenProfile, setCitizenProfile] = useState<CitizenProfile | null>(null)
     const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([])
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
     const [isSuccess, setIsSuccess] = useState(false)
@@ -67,6 +70,29 @@ export default function ProfilePage() {
     // ... rest of useEffect remains the same
 
     useEffect(() => {
+        if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
+            console.warn("Firebase uninitialized, using demo user for ProfilePage");
+            const demoUser = { uid: "demo-user-123", email: "demo@civitech.in" };
+            setUser(demoUser);
+
+            // Fetch local data
+            getUserSchemeStatuses(demoUser.uid).then(statuses => {
+                getAllSchemes().then(schemes => {
+                    const combined = statuses.map(status => ({
+                        ...status,
+                        scheme: schemes.find(s => s.id === status.schemeId)
+                    }));
+                    setTrackedSchemes(combined);
+                });
+            });
+
+            getProfile(demoUser.uid).then(profile => setCitizenProfile(profile));
+            getUserBeneficiaries(demoUser.uid).then(benList => setBeneficiaries(benList));
+
+            setLoading(false);
+            return;
+        }
+
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
                 setUser(currentUser)
@@ -80,6 +106,9 @@ export default function ProfilePage() {
 
                 setTrackedSchemes(combined)
 
+                const profile = await getProfile(currentUser.uid)
+                setCitizenProfile(profile)
+
                 const benList = await getUserBeneficiaries(currentUser.uid)
                 setBeneficiaries(benList)
             }
@@ -92,7 +121,7 @@ export default function ProfilePage() {
         return (
             <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4">
                 <div className="h-12 w-12 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
-                <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Loading Dashboard...</p>
+                <p className="text-sm font-black text-slate-400 uppercase tracking-widest">{t.dashboard.loading}</p>
             </div>
         )
     }
@@ -118,6 +147,21 @@ export default function ProfilePage() {
                         )}
                     >
                         <UserCircle className="h-4 w-4" /> {t.dashboard.tabs.identity}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('intelligence')}
+                        className={cn(
+                            "flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all hover-lift shrink-0",
+                            activeTab === 'intelligence' ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500 hover:text-slate-700 font-bold"
+                        )}
+                    >
+                        <span className={cn(t.dashboard.tabs.intelligence.match(/[\u0900-\u0C7F]/) ? "leading-tight" : "")}>
+                            <Sparkles className="h-4 w-4 inline mr-2" /> {t.dashboard.tabs.intelligence}
+                        </span>
+                        <span className="relative flex h-2 w-2 ml-1">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                        </span>
                     </button>
                     <button
                         onClick={() => setActiveTab('schemes')}
@@ -157,6 +201,12 @@ export default function ProfilePage() {
                     </div>
                 )}
 
+                {activeTab === 'intelligence' && (
+                    <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 max-w-4xl mx-auto w-full">
+                        <WelfareIntelligenceFeed profileData={citizenProfile?.profileData} />
+                    </div>
+                )}
+
                 {activeTab === 'schemes' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 animate-in slide-in-from-right-4 duration-500">
                         {trackedSchemes.length > 0 ? (
@@ -172,7 +222,7 @@ export default function ProfilePage() {
                                                 {item.status.replace('_', ' ')}
                                             </Badge>
                                             <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                                                Updated {new Date(item.updatedAt.toDate()).toLocaleDateString()}
+                                                Updated {item.updatedAt?.toDate ? item.updatedAt.toDate().toLocaleDateString() : 'Recently'}
                                             </div>
                                         </div>
                                         <CardTitle className="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">{item.scheme?.name || 'Unknown Scheme'}</CardTitle>
@@ -189,8 +239,8 @@ export default function ProfilePage() {
                                 <div className="p-4 bg-slate-50 rounded-2xl text-slate-300">
                                     <Bookmark className="h-10 w-10" />
                                 </div>
-                                <h3 className="text-xl font-black text-slate-400">No schemes tracked yet</h3>
-                                <p className="text-slate-400 font-medium">Head to the schemes explorer to shortlist programs.</p>
+                                <h3 className="text-xl font-black text-slate-400">{t.dashboard.noSchemes}</h3>
+                                <p className="text-slate-400 font-medium">{t.dashboard.noSchemesDesc}</p>
                             </div>
                         )}
                     </div>
@@ -215,7 +265,7 @@ export default function ProfilePage() {
                                 </DialogHeader>
                                 <div className="space-y-6 py-4">
                                     <div className="space-y-2">
-                                        <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Full Name</Label>
+                                        <Label className="text-xs font-black uppercase tracking-widest text-slate-400">{t.dashboard.benName}</Label>
                                         <Input
                                             placeholder="Rahul Kumar"
                                             value={newBen.name}
@@ -225,7 +275,7 @@ export default function ProfilePage() {
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Relation</Label>
+                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">{t.dashboard.benRelation}</Label>
                                             <Input
                                                 placeholder="e.g. Son"
                                                 value={newBen.relation}
@@ -234,7 +284,7 @@ export default function ProfilePage() {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Age</Label>
+                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">{t.dashboard.benAge}</Label>
                                             <Input
                                                 type="number"
                                                 placeholder="24"
@@ -248,7 +298,7 @@ export default function ProfilePage() {
                                 <DialogFooter>
                                     {isSuccess ? (
                                         <div className="w-full h-14 bg-emerald-500 text-white font-black rounded-xl flex items-center justify-center gap-2 animate-in zoom-in">
-                                            <CheckCircle2 className="h-5 w-5" /> SAVED SUCCESSFULLY
+                                            <CheckCircle2 className="h-5 w-5" /> {t.dashboard.savedSuccess}
                                         </div>
                                     ) : (
                                         <button

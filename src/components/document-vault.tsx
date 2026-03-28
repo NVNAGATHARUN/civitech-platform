@@ -79,10 +79,10 @@ export function DocumentVault({ userId }: { userId: string }) {
                     <CardContent className="p-6 pt-4 space-y-4">
                         <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400">
                             <div className="flex items-center gap-1.5">
-                                <Calendar className="h-3 w-3" /> Issued: {new Date(token.issuedAt.toDate()).toLocaleDateString()}
+                                <Calendar className="h-3 w-3" /> Issued: {token.issuedAt?.toDate ? token.issuedAt.toDate().toLocaleDateString() : 'N/A'}
                             </div>
                             <div className="flex items-center gap-1.5 text-amber-500">
-                                <Lock className="h-3 w-3" /> Expires: {new Date(token.expiresAt.toDate()).toLocaleDateString()}
+                                <Lock className="h-3 w-3" /> Expires: {token.expiresAt?.toDate ? token.expiresAt.toDate().toLocaleDateString() : 'N/A'}
                             </div>
                         </div>
 

@@ -12,6 +12,14 @@ export function useUserRole() {
     const [user, setUser] = useState<User | null>(null)
 
     useEffect(() => {
+        if (!auth || !auth.app || !auth.app.options || !auth.app.options.apiKey) {
+            console.warn("Firebase uninitialized, using demo role for useUserRole");
+            setUser({ uid: "demo-user-123", email: "demo@civitech.in" } as User);
+            setRole("citizen");
+            setLoading(false);
+            return;
+        }
+
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             setUser(currentUser)
             if (currentUser) {

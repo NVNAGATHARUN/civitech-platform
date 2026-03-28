@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { CheckCircle2, AlertCircle, FileText, Lock, FileDigit } from "lucide-react"
-import { auth } from "@/lib/firebase"
+import { auth, db } from "@/lib/firebase"
 import { Scheme, EligibilityToken } from "@/lib/types"
 import { useLanguage } from "@/lib/LanguageContext"
+import { useUserRole } from "@/lib/useUserRole"
 
 // PDF.js worker setup
-import * as pdfjsLib from 'pdfjs-dist';
-// Use a stable, high-availability CDN for the worker to avoid fetch errors
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+// PDF.js worker setup removed from top-level to prevent SSR build errors
+// Will be imported dynamically in the handler
 
 interface LocalDocVerifierProps {
     scheme: Scheme;
@@ -21,6 +21,7 @@ interface LocalDocVerifierProps {
 }
 
 export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierProps) {
+    const { user } = useUserRole()
     const { t } = useLanguage()
     const [status, setStatus] = useState<'idle' | 'processing' | 'success' | 'failure'>('idle')
     const [progress, setProgress] = useState(0)
@@ -33,7 +34,7 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
         if (!file) return
 
         setStatus('processing')
-        setMessage("Initializing Secure Worker...")
+        setMessage(t.verifier.processing)
         setProgress(10)
 
         try {
@@ -53,6 +54,10 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
 
             if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
                 setMessage("Extracting PDF Content...")
+                // Dynamically import PDF.js to avoid SSR issues
+                const pdfjsLib = await import('pdfjs-dist');
+                pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
+
                 const arrayBuffer = await file.arrayBuffer();
                 const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
@@ -99,7 +104,7 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
     }
 
     const verifyDocument = (text: string) => {
-        setMessage("Verifying Eligibility...")
+        setMessage(t.verifier.verifying)
 
         // Robust cleanup: remove commas and normalize whitespace
         const cleanText = text.replace(/,/g, '').replace(/\s+/g, ' ');
@@ -158,8 +163,6 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
 
                 // Create and store Token
                 const tokenString = `VERIFIED-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-                const user = auth.currentUser;
-
                 const token: EligibilityToken = {
                     tokenString,
                     userId: user?.uid || "anonymous",
@@ -168,16 +171,22 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
                     expiresAt: new Date(Date.now() + 86400000) as any
                 }
 
-                // Persist to Firestore
+                // Persist to Firestore / LocalStorage
                 if (user) {
-                    import("@/lib/firebase").then(({ db }) => {
+                    const isFirebaseReady = db && db.app && db.app.options && db.app.options.apiKey;
+                    if (isFirebaseReady) {
                         import("firebase/firestore").then(({ collection, addDoc }) => {
                             addDoc(collection(db, "eligibilityTokens"), {
                                 ...token,
                                 createdAt: new Date()
                             });
                         });
-                    });
+                    } else {
+                        console.warn("Firebase uninitialized, saving token to localStorage (demo mode)");
+                        const localTokens = JSON.parse(localStorage.getItem(`eligibilityTokens_${user.uid}`) || "[]");
+                        localTokens.push(token);
+                        localStorage.setItem(`eligibilityTokens_${user.uid}`, JSON.stringify(localTokens));
+                    }
 
                     import("@/services/schemeStatus").then(({ updateSchemeStatus }) => {
                         updateSchemeStatus(user.uid, scheme.id, 'eligible');
@@ -217,7 +226,7 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
                                 </label>
                             </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">Supports JPG, PNG, and PDF documents (Verified locally).</p>
+                        <p className="text-xs text-muted-foreground mt-2">{t.verifier.supports}</p>
                     </div>
                 )}
 
@@ -234,7 +243,7 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
                         <p className="font-medium">{t.verifier.success}</p>
                         {detectedAadhaar && (
                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                Detected Aadhaar: XXXX-XXXX-{detectedAadhaar.slice(-4)}
+                                {t.verifier.aadhaar}{detectedAadhaar.slice(-4)}
                             </p>
                         )}
                     </div>
@@ -244,7 +253,7 @@ export function LocalDocVerifier({ scheme, onTokenCreated }: LocalDocVerifierPro
                     <div className="flex flex-col items-center text-red-600 space-y-2 animate-in shake">
                         <AlertCircle className="h-10 w-10" />
                         <p className="font-medium">{message}</p>
-                        <Button variant="ghost" size="sm" onClick={() => setStatus('idle')}>Try Again</Button>
+                        <Button variant="ghost" size="sm" onClick={() => setStatus('idle')}>{t.verifier.tryAgain}</Button>
                         {debugText && (
                             <details className="text-left w-full mt-2">
                                 <summary className="text-xs cursor-pointer">Debug OCR Text</summary>

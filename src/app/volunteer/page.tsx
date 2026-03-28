@@ -24,8 +24,10 @@ import { DashboardLayout } from "@/components/dashboard-layout"
 import { DraftService, CitizenDraft } from "@/services/drafts"
 import { toast } from "sonner"
 import { Cloud, CloudOff, RefreshCw, Trash2 } from "lucide-react"
+import { useLanguage } from "@/lib/LanguageContext"
 
 export default function VolunteerPage() {
+    const { t } = useLanguage()
     const [user, setUser] = useState<string | null>(null)
     const [loginName, setLoginName] = useState("")
     const [beneficiaries, setBeneficiaries] = useState<any[]>([])
@@ -61,6 +63,7 @@ export default function VolunteerPage() {
                     profileData: {
                         name: draft.name,
                         age: draft.age,
+                        gender: "Male", // Defaulting for now
                         education: "Not Specified",
                         income: draft.income,
                         caste: "Not Specified",
@@ -92,6 +95,10 @@ export default function VolunteerPage() {
     }
 
     const fetchBeneficiaries = async (volunteerId: string) => {
+        if (!db || !db.app || !db.app.options || !db.app.options.apiKey) {
+            setLoading(false);
+            return;
+        }
         setLoading(true)
         try {
             const { getProfilesByVolunteer } = await import("@/services/profile")
@@ -112,13 +119,13 @@ export default function VolunteerPage() {
                         <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100">
                             <Users className="h-8 w-8 text-blue-600" />
                         </div>
-                        <CardTitle className="text-2xl font-black text-slate-900 tracking-tight">Volunteer Portal</CardTitle>
-                        <CardDescription className="text-slate-500 font-medium">Authorized Personnel Access Only</CardDescription>
+                        <CardTitle className="text-2xl font-black text-slate-900 tracking-tight">{t.volunteer.title}</CardTitle>
+                        <CardDescription className="text-slate-500 font-medium">{t.volunteer.subtitle}</CardDescription>
                     </CardHeader>
                     <CardContent className="px-8 pb-10">
                         <form onSubmit={handleLogin} className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-700 uppercase tracking-widest">Employee ID / Full Name</label>
+                                <label className="text-xs font-bold text-slate-700 uppercase tracking-widest">{t.volunteer.empId}</label>
                                 <Input
                                     className="h-12 border-slate-300 focus:ring-blue-500"
                                     placeholder="e.g. Volunteer-01"
@@ -127,7 +134,7 @@ export default function VolunteerPage() {
                                 />
                             </div>
                             <Button className="w-full h-12 bg-[#0F172A] hover:bg-slate-800 font-bold transition-all" type="submit">
-                                IDENTITY VERIFICATION
+                                {t.volunteer.idVerification}
                             </Button>
                         </form>
                     </CardContent>
@@ -143,28 +150,28 @@ export default function VolunteerPage() {
                 <div className="grid gap-6 md:grid-cols-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <MetricCard
                         icon={<Users className="h-5 w-5" />}
-                        label="Active Beneficiaries"
+                        label={t.volunteer.activeBen}
                         value={beneficiaries.length}
                         trend="+2 today"
                         color="blue"
                     />
                     <MetricCard
                         icon={<CloudOff className="h-5 w-5" />}
-                        label="Offline Drafts"
+                        label={t.volunteer.offlineDrafts}
                         value={drafts.length}
                         trend="Waiting for sync"
                         color="amber"
                     />
                     <MetricCard
                         icon={<BadgeCheck className="h-5 w-5" />}
-                        label="Token Success Rate"
+                        label={t.volunteer.successRate}
                         value="94%"
                         trend="High Efficiency"
                         color="emerald"
                     />
                     <MetricCard
                         icon={<TrendingUp className="h-5 w-5" />}
-                        label="Impact Score"
+                        label={t.volunteer.impactScore}
                         value="2,450"
                         trend="+120 points"
                         color="amber"
@@ -174,16 +181,16 @@ export default function VolunteerPage() {
                 {/* Section Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-slate-200">
                     <div>
-                        <h2 className="text-3xl font-black text-[#0F172A] tracking-tight">Assigned Beneficiaries</h2>
-                        <p className="text-slate-500 font-medium mt-1">Manage and assist citizens with scheme documentation.</p>
+                        <h2 className="text-3xl font-black text-[#0F172A] tracking-tight">{t.volunteer.assignedTitle}</h2>
+                        <p className="text-slate-500 font-medium mt-1">{t.volunteer.assignedDesc}</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <Button variant="outline" className="border-slate-300 h-11 font-bold">
-                            <Search className="mr-2 h-4 w-4" /> FIND CITIZEN
+                            <Search className="mr-2 h-4 w-4" /> {t.volunteer.findCitizen}
                         </Button>
                         <Button asChild className="bg-blue-600 hover:bg-blue-700 h-11 px-6 font-bold shadow-lg shadow-blue-200">
                             <Link href="/check">
-                                <Plus className="mr-2 h-5 w-5" /> NEW REGISTRATION
+                                <Plus className="mr-2 h-5 w-5" /> {t.volunteer.newRegistration}
                             </Link>
                         </Button>
                     </div>
@@ -202,7 +209,7 @@ export default function VolunteerPage() {
                                 className="bg-[#0F172A] hover:bg-slate-800 text-xs font-black uppercase tracking-widest"
                             >
                                 {syncing ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : <Cloud className="h-4 w-4 mr-2" />}
-                                SYNC ALL TO CLOUD
+                                {t.volunteer.syncCloud}
                             </Button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -235,8 +242,8 @@ export default function VolunteerPage() {
                         {beneficiaries.length === 0 ? (
                             <div className="text-center py-20 border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50 text-slate-400">
                                 <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                                <h3 className="text-lg font-bold text-slate-500">No active profiles assigned</h3>
-                                <p className="text-sm font-medium mt-1">Start by registering a citizen at the last mile.</p>
+                                <h3 className="text-lg font-bold text-slate-500">{t.volunteer.noProfiles}</h3>
+                                <p className="text-sm font-medium mt-1">{t.volunteer.registerStart}</p>
                             </div>
                         ) : (
                             beneficiaries.map((b: any) => (

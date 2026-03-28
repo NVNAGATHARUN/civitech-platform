@@ -1,39 +1,36 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import dynamic from "next/dynamic"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { RoleGuard } from "@/components/role-guard"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell,
-    LineChart,
-    Line,
-    AreaChart,
-    Area
-} from "recharts"
 import {
     TrendingUp,
     Users,
     Map,
     Activity,
-    PieChart as PieIcon,
-    ArrowUpRight,
-    ArrowDownRight,
     Search,
     Calendar,
     Download
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useLanguage } from "@/lib/LanguageContext"
+
+// Dynamically import Recharts with SSR disabled
+const ResponsiveContainer = dynamic(() => import("recharts").then(re => re.ResponsiveContainer), { ssr: false })
+const AreaChart = dynamic(() => import("recharts").then(re => re.AreaChart), { ssr: false })
+const Area = dynamic(() => import("recharts").then(re => re.Area), { ssr: false })
+const XAxis = dynamic(() => import("recharts").then(re => re.XAxis), { ssr: false })
+const YAxis = dynamic(() => import("recharts").then(re => re.YAxis), { ssr: false })
+const CartesianGrid = dynamic(() => import("recharts").then(re => re.CartesianGrid), { ssr: false })
+const Tooltip = dynamic(() => import("recharts").then(re => re.Tooltip), { ssr: false })
+const PieChart = dynamic(() => import("recharts").then(re => re.PieChart), { ssr: false })
+const Pie = dynamic(() => import("recharts").then(re => re.Pie), { ssr: false })
+const Cell = dynamic(() => import("recharts").then(re => re.Cell), { ssr: false })
+const BarChart = dynamic(() => import("recharts").then(re => re.BarChart), { ssr: false })
+const Bar = dynamic(() => import("recharts").then(re => re.Bar), { ssr: false })
 
 const DEMO_DATA = {
     ageDistribution: [
@@ -58,6 +55,7 @@ const DEMO_DATA = {
 }
 
 export default function AnalyticsPage() {
+    const { t } = useLanguage()
     return (
         <RoleGuard allowedRoles={['admin']}>
             <DashboardLayout role="admin">
@@ -65,15 +63,15 @@ export default function AnalyticsPage() {
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div>
-                            <h2 className="text-3xl font-black text-[#0F172A] tracking-tight">Analytics Hub</h2>
-                            <p className="text-slate-500 font-medium">Deep-dive into demographic trends, scheme adoption, and regional performance.</p>
+                            <h2 className="text-3xl font-black text-[#0F172A] tracking-tight">{t.admin.analytics.title}</h2>
+                            <p className="text-slate-500 font-medium">{t.admin.analytics.desc}</p>
                         </div>
                         <div className="flex items-center gap-3">
                             <Button variant="outline" className="h-11 border-slate-200 font-bold">
-                                <Calendar className="mr-2 h-4 w-4" /> LAST 30 DAYS
+                                <Calendar className="mr-2 h-4 w-4" /> {t.admin.analytics.last30Days}
                             </Button>
                             <Button className="h-11 bg-blue-600 hover:bg-blue-700 font-bold shadow-lg shadow-blue-200">
-                                <Download className="mr-2 h-4 w-4" /> EXPORT REPORT
+                                <Download className="mr-2 h-4 w-4" /> {t.admin.analytics.exportReport}
                             </Button>
                         </div>
                     </div>
@@ -85,8 +83,8 @@ export default function AnalyticsPage() {
                             <CardHeader className="p-8 pb-0">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <CardTitle className="text-xl font-black text-[#0F172A]">Volume Trends</CardTitle>
-                                        <CardDescription className="text-slate-400 font-medium">Monthly application vs verification growth.</CardDescription>
+                                        <CardTitle className="text-xl font-black text-[#0F172A]">{t.admin.analytics.volumeTrends}</CardTitle>
+                                        <CardDescription className="text-slate-400 font-medium">{t.admin.analytics.volumeDesc}</CardDescription>
                                     </div>
                                     <div className="h-10 w-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
                                         <TrendingUp className="h-5 w-5" />
@@ -109,8 +107,8 @@ export default function AnalyticsPage() {
                                             contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
                                             itemStyle={{ fontSize: '12px', fontWeight: '800', textTransform: 'uppercase' }}
                                         />
-                                        <Area type="monotone" dataKey="applications" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorApps)" />
-                                        <Area type="monotone" dataKey="verified" stroke="#10B981" strokeWidth={3} fillOpacity={0} />
+                                        <Area type="monotone" dataKey="applications" name={t.admin.analytics.applications} stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorApps)" />
+                                        <Area type="monotone" dataKey="verified" name={t.admin.analytics.verifiedStat} stroke="#10B981" strokeWidth={3} fillOpacity={0} />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             </CardContent>
@@ -121,8 +119,8 @@ export default function AnalyticsPage() {
                             <CardHeader className="p-8 pb-0">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <CardTitle className="text-xl font-black text-[#0F172A]">Age Demographics</CardTitle>
-                                        <CardDescription className="text-slate-400 font-medium">Population distribution by age groups.</CardDescription>
+                                        <CardTitle className="text-xl font-black text-[#0F172A]">{t.admin.analytics.ageDemographics}</CardTitle>
+                                        <CardDescription className="text-slate-400 font-medium">{t.admin.analytics.ageDesc}</CardDescription>
                                     </div>
                                     <div className="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
                                         <Users className="h-5 w-5" />
@@ -165,8 +163,8 @@ export default function AnalyticsPage() {
                             <CardHeader className="p-8 pb-0">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <CardTitle className="text-xl font-black text-[#0F172A]">Income Breakdown</CardTitle>
-                                        <CardDescription className="text-slate-400 font-medium">Distribution across economic segments.</CardDescription>
+                                        <CardTitle className="text-xl font-black text-[#0F172A]">{t.admin.analytics.incomeBreakdown}</CardTitle>
+                                        <CardDescription className="text-slate-400 font-medium">{t.admin.analytics.incomeDesc}</CardDescription>
                                     </div>
                                     <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
                                         <Activity className="h-5 w-5" />

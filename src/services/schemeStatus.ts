@@ -20,6 +20,33 @@ export async function updateSchemeStatus(
     status: SchemeStatus,
     dropOffReason?: string
 ): Promise<{ success: boolean; error?: string }> {
+    const isFirebaseReady = db && db.app && db.app.options && db.app.options.apiKey;
+
+    if (!isFirebaseReady) {
+        console.warn("Firebase uninitialized, updating scheme status in localStorage (demo mode)");
+        const statusId = `${userId}_${schemeId}`;
+        const localStatuses = JSON.parse(localStorage.getItem(`schemeStatus_${userId}`) || "[]");
+
+        const existingIdx = localStatuses.findIndex((s: any) => s.schemeId === schemeId);
+        const statusData: any = {
+            userId,
+            schemeId,
+            managedBy: 'self',
+            status,
+            updatedAt: new Date().toISOString()
+        };
+        if (dropOffReason !== undefined) statusData.dropOffReason = dropOffReason;
+
+        if (existingIdx >= 0) {
+            localStatuses[existingIdx] = statusData;
+        } else {
+            localStatuses.push(statusData);
+        }
+
+        localStorage.setItem(`schemeStatus_${userId}`, JSON.stringify(localStatuses));
+        return { success: true };
+    }
+
     try {
         const statusId = `${userId}_${schemeId}`;
         const docRef = doc(db, "schemeStatus", statusId);
@@ -63,6 +90,14 @@ export async function getSchemeStatus(
     userId: string,
     schemeId: string
 ): Promise<CitizenSchemeStatus | null> {
+    const isFirebaseReady = db && db.app && db.app.options && db.app.options.apiKey;
+
+    if (!isFirebaseReady) {
+        console.warn("Firebase uninitialized, fetching scheme status from localStorage (demo mode)");
+        const localStatuses = JSON.parse(localStorage.getItem(`schemeStatus_${userId}`) || "[]");
+        return localStatuses.find((s: any) => s.schemeId === schemeId) || null;
+    }
+
     try {
         const statusId = `${userId}_${schemeId}`;
         const docRef = doc(db, "schemeStatus", statusId);
@@ -79,6 +114,13 @@ export async function getSchemeStatus(
 }
 
 export async function getUserSchemeStatuses(userId: string): Promise<CitizenSchemeStatus[]> {
+    const isFirebaseReady = db && db.app && db.app.options && db.app.options.apiKey;
+
+    if (!isFirebaseReady) {
+        console.warn("Firebase uninitialized, fetching user scheme statuses from localStorage (demo mode)");
+        return JSON.parse(localStorage.getItem(`schemeStatus_${userId}`) || "[]");
+    }
+
     try {
         const q = query(
             collection(db, "schemeStatus"),
@@ -92,7 +134,11 @@ export async function getUserSchemeStatuses(userId: string): Promise<CitizenSche
         } as CitizenSchemeStatus));
 
         // Sort client-side to avoid needing a Firestore Composite Index
-        return results.sort((a, b) => b.updatedAt.toMillis() - a.updatedAt.toMillis());
+        return results.sort((a, b) => {
+            const timeA = a.updatedAt?.toMillis?.() || 0;
+            const timeB = b.updatedAt?.toMillis?.() || 0;
+            return timeB - timeA;
+        });
     } catch (error) {
         console.error("Error fetching user scheme statuses:", error);
         return [];
@@ -100,6 +146,21 @@ export async function getUserSchemeStatuses(userId: string): Promise<CitizenSche
 }
 
 export async function getSchemeAnalytics() {
+    const isFirebaseReady = db && db.app && db.app.options && db.app.options.apiKey;
+
+    if (!isFirebaseReady) {
+        console.warn("Firebase uninitialized, returning mock analytics data (demo mode)");
+        return {
+            totalRecommendations: 42,
+            statusCounts: { checked: 15, eligible: 12, planned: 8, applied: 5, benefit_received: 2 },
+            topReasons: [
+                { reason: "Income exceeds limit", count: 12 },
+                { reason: "Missing document (Caste Cert)", count: 8 },
+                { reason: "Age mismatch", count: 5 }
+            ]
+        };
+    }
+
     try {
         const querySnapshot = await getDocs(collection(db, "schemeStatus"));
         const statuses = querySnapshot.docs.map(doc => doc.data() as CitizenSchemeStatus);

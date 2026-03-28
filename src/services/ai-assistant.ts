@@ -5,7 +5,7 @@ export interface ChatMessage {
     content: string;
 }
 
-export async function getBotResponse(input: string, history: ChatMessage[] = []): Promise<string> {
+export async function getBotResponse(input: string, history: ChatMessage[] = [], userContext?: any): Promise<string> {
     try {
         // Convert and clean history for Gemini (strict user/model alternation)
         let geminiHistory: any[] = [];
@@ -34,7 +34,8 @@ export async function getBotResponse(input: string, history: ChatMessage[] = [])
             },
             body: JSON.stringify({
                 message: input,
-                history: geminiHistory
+                history: geminiHistory,
+                userContext
             }),
         });
 
@@ -46,7 +47,7 @@ export async function getBotResponse(input: string, history: ChatMessage[] = [])
 
         if (data.error) {
             console.error("AI Assistant Error:", data.error);
-            return "I'm having a bit of trouble connecting to my brain right now. Please try again in a moment!";
+            return `[AI Error] ${data.error}`;
         }
 
         return data.text;
